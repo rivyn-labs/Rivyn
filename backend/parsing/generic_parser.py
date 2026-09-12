@@ -123,7 +123,7 @@ class GenericLogParser:
             host = entities["bgl_node"]
 
         # 6. Drain Template Mining
-        template_str, template_id = self.drain.parse(message, line_id)
+        template_str, template_id, params = self.drain.parse(message, line_id)
 
         # 7. Initial Anomaly Flagging for critical severities
         is_initial_anomaly = level in ["ERROR", "FATAL", "CRITICAL"]
@@ -139,6 +139,7 @@ class GenericLogParser:
             message=message,
             template=template_str,
             template_id=template_id,
+            params=params,
             entities=entities,
             raw=sanitized_raw,
             anomaly_score=0.8 if is_initial_anomaly else 0.0,

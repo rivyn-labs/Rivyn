@@ -22,10 +22,11 @@ def test_drain_parser_clustering():
     drain = DrainParser()
     msg1 = "Connection established to worker alpha with status OK"
     msg2 = "Connection established to worker beta with status OK"
-    tmpl1, id1 = drain.parse(msg1, 1)
-    tmpl2, id2 = drain.parse(msg2, 2)
+    tmpl1, id1, params1 = drain.parse(msg1, 1)
+    tmpl2, id2, params2 = drain.parse(msg2, 2)
     assert id1 == id2
     assert "<*>" in tmpl2
+    assert isinstance(params1, list)
 
 def test_entity_extractor():
     msg = "serving block blk_987654321 to client 192.168.1.50:50010 user admin"

@@ -68,26 +68,28 @@ def get_binary_stats():
 @router.get("/datasets")
 def list_available_datasets():
     datasets = [
-        {"id": "hdfs", "name": "HDFS (2,000 Lines Standard)", "type": "Distributed File System", "scale": "Standard"},
-        {"id": "hdfs_big", "name": "HDFS Big Data (25,000 Lines - Binary Engine)", "type": "Distributed File System", "scale": "Big Data"},
-        {"id": "linux", "name": "Linux Syslog (2,000 Lines Standard)", "type": "Operating System", "scale": "Standard"},
-        {"id": "linux_big", "name": "Linux Big Data (25,000 Lines - Binary Engine)", "type": "Operating System", "scale": "Big Data"},
-        {"id": "bgl", "name": "BGL (2,000 Lines Standard)", "type": "HPC Supercomputer", "scale": "Standard"},
-        {"id": "bgl_big", "name": "BGL Big Data (25,000 Lines - Binary Engine)", "type": "HPC Supercomputer", "scale": "Big Data"},
-        {"id": "openstack", "name": "OpenStack (2,000 Lines Standard)", "type": "Cloud Infrastructure", "scale": "Standard"},
-        {"id": "openstack_big", "name": "OpenStack Big Data (25,000 Lines - Binary Engine)", "type": "Cloud Infrastructure", "scale": "Big Data"},
+        {"id": "linux_full", "name": "Linux Full Dataset (25,567 Lines - Complete LogHub)", "type": "Operating System", "scale": "Complete LogHub (100%)"},
+        {"id": "hdfs", "name": "HDFS (2,000 Lines Slice)", "type": "Distributed File System", "scale": "Slice"},
+        {"id": "linux", "name": "Linux (2,000 Lines Slice)", "type": "Operating System", "scale": "Slice"},
+        {"id": "bgl", "name": "BGL (2,000 Lines Slice)", "type": "HPC Supercomputer", "scale": "Slice"},
+        {"id": "openstack", "name": "OpenStack (2,000 Lines Slice)", "type": "Cloud Infrastructure", "scale": "Slice"},
+        {"id": "hdfs_big", "name": "HDFS Enterprise Scale (25k - Parquet Engine)", "type": "Distributed File System", "scale": "Big Data"},
+        {"id": "bgl_big", "name": "BGL Enterprise Scale (25k - Parquet Engine)", "type": "HPC Supercomputer", "scale": "Big Data"},
     ]
     return {"datasets": datasets}
 
 @router.post("/ingest/sample")
 def ingest_sample(req: SampleIngestRequest):
-    if req.dataset.endswith("_big"):
+    if req.dataset == "linux_full":
+        filepath = "data/samples/Linux.log"
+        lines_limit = req.max_lines if (req.max_lines and req.max_lines > 500) else 30000
+    elif req.dataset.endswith("_big"):
         base_name = req.dataset.replace("_big", "")
         filepath = f"data/samples_expanded/{base_name}_expanded.log"
         lines_limit = req.max_lines if (req.max_lines and req.max_lines > 500) else 25000
     else:
         filepath = f"data/samples/{req.dataset}_sample.log"
-        lines_limit = req.max_lines or 500
+        lines_limit = req.max_lines or 2000
 
     if not os.path.exists(filepath):
         raise HTTPException(status_code=404, detail=f"Sample dataset file '{filepath}' not found.")

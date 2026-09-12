@@ -23,7 +23,8 @@ class DrainParser:
     """
     Drain: An online log parsing algorithm with a fixed-depth parse tree.
     Extracts stable templates from raw unstructured messages by substituting
-    dynamic parameters (IPs, numbers, IDs, hex) with wildcard '<*>'.
+    dynamic parameters (IPs, numbers, IDs, hex) with wildcard '<*>'
+    and extracting params[] for structured binary columnar storage.
     """
 
     def __init__(self, depth: int = 4, st: float = 0.5, max_child: int = 100):
@@ -44,12 +45,17 @@ class DrainParser:
         (re.compile(r'\b\d+\b'), '<NUM>'),
     ]
 
-    def preprocess(self, content: str) -> List[str]:
+    def preprocess(self, content: str) -> Tuple[List[str], List[str]]:
         cleaned = content
+        extracted_params = []
         for regex, token in self.MASKS:
+            matches = regex.findall(cleaned)
+            for m in matches:
+                if isinstance(m, str) and m:
+                    extracted_params.append(m)
             cleaned = regex.sub(token, cleaned)
         tokens = cleaned.strip().split()
-        return tokens
+        return tokens, extracted_params
 
     def match_template(self, seq1: List[str], seq2: List[str]) -> Tuple[float, int]:
         """Calculates token similarity between two token sequences."""
@@ -65,13 +71,13 @@ class DrainParser:
                 sim_count += 1
         return sim_count / len(seq1), params
 
-    def parse(self, message: str, log_id: int) -> Tuple[str, str]:
+    def parse(self, message: str, log_id: int) -> Tuple[str, str, List[str]]:
         """
-        Parses a log message into (template_str, template_id).
+        Parses a log message into (template_str, template_id, params).
         """
-        tokens = self.preprocess(message)
+        tokens, params = self.preprocess(message)
         if not tokens:
-            return "<EMPTY>", "tmpl_empty"
+            return "<EMPTY>", "tmpl_empty", []
 
         seq_len = len(tokens)
         cur_node = self.root
@@ -85,7 +91,6 @@ class DrainParser:
         # Layers 2 to depth: Internal token layers
         for i in range(min(self.depth, seq_len)):
             token = tokens[i]
-            # If token contains dynamic mask, use wild bucket
             if token.startswith('<') and token.endswith('>'):
                 token = '<*>'
             if token not in cur_node.child_nodes:
@@ -114,11 +119,11 @@ class DrainParser:
             best_cluster.size += 1
             if len(best_cluster.sample_log_ids) < 10:
                 best_cluster.sample_log_ids.append(log_id)
-            return best_cluster.get_template_str(), best_cluster.template_id
+            return best_cluster.get_template_str(), best_cluster.template_id, params
         else:
             # Create a new cluster
             new_template = list(tokens)
             cluster = LogCluster(new_template, log_id)
             cur_node.clusters.append(cluster)
             self.clusters[cluster.template_id] = cluster
-            return cluster.get_template_str(), cluster.template_id
+            return cluster.get_template_str(), cluster.template_id, params

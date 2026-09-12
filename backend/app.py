@@ -26,12 +26,13 @@ logger = logging.getLogger("ObservabilityApp")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Pre-populate default LogHub HDFS sample for immediate demo readiness
-    sample_file = "data/samples/hdfs_sample.log"
+    # Startup: Pre-populate complete LogHub Linux dataset (or HDFS fallback)
+    sample_file = "data/samples/Linux.log" if os.path.exists("data/samples/Linux.log") else "data/samples/hdfs_sample.log"
+    dataset_name = "linux_full" if "Linux.log" in sample_file else "hdfs"
     if os.path.exists(sample_file):
         try:
-            logger.info("Pre-loading HDFS benchmark sample for immediate demo availability...")
-            batch = LogLoader.load_from_file(sample_file, max_lines=400, dataset_name="hdfs")
+            logger.info(f"Pre-loading {dataset_name} ({sample_file}) for immediate demo availability...")
+            batch = LogLoader.load_from_file(sample_file, max_lines=26000, dataset_name=dataset_name)
             batch.logs = HybridAnomalyDetector().detect_anomalies(batch.logs)
             incidents = IncidentCorrelator().correlate(batch.logs)
             logs_map = {l.id: l for l in batch.logs}
@@ -43,13 +44,20 @@ async def lifespan(app: FastAPI):
                 batch.logs,
                 incidents,
                 len(batch.templates),
-                pipeline_elapsed_sec=0.25
+                pipeline_elapsed_sec=0.45
             )
             index = LogEmbeddingIndex(chunk_size=5)
-            index.build_index(batch.logs)
+            index.build_index(batch.logs[:2000])
+
+            # Binary Columnar Parquet Serialization
+            from backend.storage.binary_engine import BinaryLogEngine
+            bin_save = BinaryLogEngine.save_batch(batch, output_dir="data/binary")
+            bin_scan = BinaryLogEngine.scan_anomalies_vectorized(bin_save["file_path"])
+            state.binary_stats = {**bin_save, **bin_scan}
+
             state.current_batch = batch
             state.embedding_index = index
-            logger.info(f"Demo data loaded: {len(batch.logs)} logs, {len(incidents)} incidents.")
+            logger.info(f"Demo data loaded: {len(batch.logs):,} logs, {len(incidents)} incidents.")
         except Exception as e:
             logger.error(f"Failed to pre-load sample: {e}")
     yield

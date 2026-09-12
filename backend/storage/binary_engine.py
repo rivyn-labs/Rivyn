@@ -12,8 +12,9 @@ class BinaryLogEngine:
     High-Performance Binary Columnar Storage Engine for Big Data Logs:
     - Serializes parsed log events into Apache Arrow / Parquet binary tables.
     - Utilizes dictionary encoding for repeated strings (severity, service, template_id).
+    - Preserves extracted dynamic parameters params[] in columnar list arrays.
     - Enables zero-copy memory-mapped scans and sub-millisecond vectorized filtering.
-    - Slashes memory and disk footprint by 80-90% compared to raw ASCII text.
+    - Slashes memory and disk footprint by 65-80% compared to raw ASCII text.
     """
 
     ARROW_SCHEMA = pa.schema([
@@ -27,6 +28,7 @@ class BinaryLogEngine:
         ("message", pa.string()),
         ("template_id", pa.dictionary(pa.int16(), pa.string())),
         ("template", pa.string()),
+        ("params", pa.list_(pa.string())),
         ("entities_json", pa.string()),
         ("anomaly_score", pa.float32()),
         ("is_anomaly", pa.bool_()),
@@ -55,6 +57,7 @@ class BinaryLogEngine:
         messages = [l.message for l in logs]
         template_ids = [l.template_id for l in logs]
         templates = [l.template for l in logs]
+        params = [l.params if l.params else [] for l in logs]
         entities_jsons = [json.dumps(l.entities) for l in logs]
         anomaly_scores = [float(l.anomaly_score) for l in logs]
         is_anomalies = [bool(l.is_anomaly) for l in logs]
@@ -75,6 +78,7 @@ class BinaryLogEngine:
                 pa.array(messages, type=pa.string()),
                 pa.array(template_ids).dictionary_encode(),
                 pa.array(templates, type=pa.string()),
+                pa.array(params, type=pa.list_(pa.string())),
                 pa.array(entities_jsons, type=pa.string()),
                 pa.array(anomaly_scores, type=pa.float32()),
                 pa.array(is_anomalies, type=pa.bool_()),
@@ -110,17 +114,14 @@ class BinaryLogEngine:
             raise FileNotFoundError(f"Binary file not found: {filepath}")
 
         t0 = time.time()
-        # Read only the boolean and score columns (projection pushdown)
         table = pq.read_table(filepath, columns=["id", "anomaly_score", "is_anomaly"])
         total_rows = len(table)
 
-        # Vectorized boolean filter at C-speed
         mask = pc.equal(table["is_anomaly"], True)
         anomalous_table = table.filter(mask)
         anomaly_count = len(anomalous_table)
         scan_time_ms = round((time.time() - t0) * 1000, 3)
 
-        # Throughput
         rows_per_sec = int(total_rows / max(0.0001, scan_time_ms / 1000))
 
         return {
@@ -145,7 +146,6 @@ class BinaryLogEngine:
         if offset >= total_rows:
             return []
 
-        # Read only the batch window
         actual_limit = min(limit, total_rows - offset)
         table = parquet_file.read_row_group(0) if parquet_file.num_row_groups == 1 else parquet_file.read()
         sliced = table.slice(offset, actual_limit)

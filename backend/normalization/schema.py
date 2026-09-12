@@ -23,6 +23,7 @@ class NormalizedLog(BaseModel):
     message: str = Field(..., description="Cleaned message body")
     template: str = Field(..., description="Abstracted template pattern with <*> wildcards")
     template_id: str = Field(..., description="Unique template cluster hash/id")
+    params: List[str] = Field(default_factory=list, description="Extracted dynamic variable parameters")
     entities: Dict[str, Any] = Field(default_factory=dict, description="Extracted entities like block_id, IPs, UUIDs")
     raw: str = Field(..., description="Original raw log line")
     anomaly_score: float = Field(0.0, description="Calculated anomaly score between 0.0 and 1.0")
