@@ -72,7 +72,11 @@ async function refreshDashboard() {
 
 async function switchDataset(datasetName) {
   try {
-    const linesCount = datasetName.endsWith("_big") ? 25000 : 400;
+    let linesCount = 1500;
+    if (datasetName === "openstack_full") linesCount = 250000;
+    else if (datasetName === "linux_full") linesCount = 30000;
+    else if (datasetName.endsWith("_big")) linesCount = 25000;
+
     const res = await fetch("/api/ingest/sample", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

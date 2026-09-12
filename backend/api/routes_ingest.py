@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api", tags=["Ingestion"])
 
 class SampleIngestRequest(BaseModel):
     dataset: str  # hdfs, bgl, linux, openstack, or hdfs_big, etc.
-    max_lines: Optional[int] = 500
+    max_lines: Optional[int] = None
 
 class RawIngestRequest(BaseModel):
     content: str
@@ -68,6 +68,7 @@ def get_binary_stats():
 @router.get("/datasets")
 def list_available_datasets():
     datasets = [
+        {"id": "openstack_full", "name": "OpenStack Full Dataset (207,820 Lines - Complete LogHub)", "type": "Cloud Infrastructure", "scale": "Complete LogHub (100%)"},
         {"id": "linux_full", "name": "Linux Full Dataset (25,567 Lines - Complete LogHub)", "type": "Operating System", "scale": "Complete LogHub (100%)"},
         {"id": "hdfs", "name": "HDFS (2,000 Lines Slice)", "type": "Distributed File System", "scale": "Slice"},
         {"id": "linux", "name": "Linux (2,000 Lines Slice)", "type": "Operating System", "scale": "Slice"},
@@ -80,13 +81,16 @@ def list_available_datasets():
 
 @router.post("/ingest/sample")
 def ingest_sample(req: SampleIngestRequest):
-    if req.dataset == "linux_full":
+    if req.dataset == "openstack_full":
+        filepath = "data/samples/OpenStack.log"
+        lines_limit = req.max_lines or 250000
+    elif req.dataset == "linux_full":
         filepath = "data/samples/Linux.log"
-        lines_limit = req.max_lines if (req.max_lines and req.max_lines > 500) else 30000
+        lines_limit = req.max_lines or 30000
     elif req.dataset.endswith("_big"):
         base_name = req.dataset.replace("_big", "")
         filepath = f"data/samples_expanded/{base_name}_expanded.log"
-        lines_limit = req.max_lines if (req.max_lines and req.max_lines > 500) else 25000
+        lines_limit = req.max_lines or 25000
     else:
         filepath = f"data/samples/{req.dataset}_sample.log"
         lines_limit = req.max_lines or 2000

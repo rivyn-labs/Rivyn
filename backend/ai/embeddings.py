@@ -35,14 +35,28 @@ class LogEmbeddingIndex:
             return
 
         self.chunks = []
-        # Create overlapping sliding window chunks
-        step = max(1, self.chunk_size // 2)
-        for i in range(0, len(logs), step):
+        total = len(logs)
+        # Adapt sliding step for large log streams (cap baseline chunks to ~2000)
+        step = max(1, self.chunk_size // 2) if total < 10000 else max(self.chunk_size, total // 2000)
+        for i in range(0, total, step):
             window = logs[i:i + self.chunk_size]
             if not window:
                 continue
             chunk = LogChunk(f"chunk_{i}", window)
             self.chunks.append(chunk)
+
+        # For large streams, ensure all anomalous windows are indexed for Copilot RAG
+        if total >= 10000:
+            covered_indices = {c.start_id for c in self.chunks}
+            for i, l in enumerate(logs):
+                if (l.is_anomaly or l.anomaly_score >= 0.55) and i not in covered_indices:
+                    if len(self.chunks) >= 5000:
+                        break
+                    start_i = max(0, i - 2)
+                    window = logs[start_i:start_i + self.chunk_size]
+                    if window:
+                        self.chunks.append(LogChunk(f"chunk_{start_i}", window))
+                        covered_indices.add(start_i)
 
         texts = [c.text for c in self.chunks]
         if texts:

@@ -13,7 +13,18 @@ def test_e2e_datasets_list():
     res = client.get("/api/datasets")
     assert res.status_code == 200
     datasets = res.json()["datasets"]
-    assert len(datasets) >= 4
+    assert len(datasets) >= 6
+    dataset_ids = [d["id"] for d in datasets]
+    assert "openstack_full" in dataset_ids
+    assert "linux_full" in dataset_ids
+
+def test_e2e_openstack_full_slice():
+    res = client.post("/api/ingest/sample", json={"dataset": "openstack_full", "max_lines": 500})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["total_lines"] == 500
+    assert data["status"] == "success"
+    assert "binary_storage" in data
 
 def test_e2e_ingest_and_query():
     # Ingest linux sample
