@@ -36,8 +36,18 @@ function initTheme() {
 
 function bindEvents() {
   const datasetSelect = document.getElementById("datasetSelect");
-  datasetSelect.addEventListener("change", async (e) => {
-    await switchDataset(e.target.value);
+
+  // Update button: re-ingest selected dataset and refresh dashboard
+  const btnUpdate = document.getElementById("btnUpdateDataset");
+  btnUpdate.addEventListener("click", async () => {
+    btnUpdate.disabled = true;
+    btnUpdate.textContent = "Updating…";
+    try {
+      await switchDataset(datasetSelect.value);
+    } finally {
+      btnUpdate.disabled = false;
+      btnUpdate.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Update`;
+    }
   });
 
   const searchInput = document.getElementById("logSearch");
