@@ -4,7 +4,7 @@
 [![PyArrow](https://img.shields.io/badge/PyArrow-Columnar_Parquet-teal.svg)](https://arrow.apache.org/docs/python/)
 [![Scikit-Learn](https://img.shields.io/badge/Scikit_Learn-Isolation_Forest-F7931E.svg?logo=scikitlearn&logoColor=white)](https://scikit-learn.org)
 [![OpenAI GPT-4o](https://img.shields.io/badge/OpenAI-GPT--4o_LLM-412991.svg?logo=openai&logoColor=white)](https://openai.com)
-[![Tests](https://img.shields.io/badge/pytest-32_passed-brightgreen.svg)](https://pytest.org)
+[![Tests](https://img.shields.io/badge/pytest-27_passed_5_skipped-brightgreen.svg)](https://pytest.org)
 [![MHP Challenge](https://img.shields.io/badge/MHP_Hackathon-Take_the_Money_and_Run-blueviolet.svg)](#)
 
 > **AETHER** is an enterprise-grade AI observability platform designed for the **MHP Hackathon ("Take the Money and Run")**. It transforms multi-gigabyte unformatted raw system logs into structured columnar binary storage (**Apache Parquet**), uncovers rare behavioral shifts using **Multi-Tier AI Anomaly Detection**, and clusters alert floods into root-cause incident tickets, measured at **88-97% alert noise reduction** on the committed LogHub datasets.
@@ -115,8 +115,11 @@ a clean-looking table.
   it matches wording rather than meaning. A query phrased differently from the
   underlying log text may miss.
 - **LLM reasoning is opt-in.** Without an API key the platform serves its
-  deterministic rule-based narratives. Every incident reports which engine produced
-  it via the `reasoning_engine` field.
+  deterministic rule-based narratives, so incident text on the board may come from
+  either the LLM or the rule engine and the response does not currently say which.
+- **HDFS tests skip on a fresh clone.** Five tests depend on the 1.58 GB
+  `HDFS.log`, which is not committed. They skip with an actionable message rather
+  than failing; fetch the dataset into `data/samples/` to run them.
 
 ---
 
@@ -136,7 +139,7 @@ a clean-looking table.
 - **Tier 1 (Template Rarity)**: Identifies infrequent log templates (<1-2% of overall frequency).
 - **Tier 2 (Isolation Forest)**: Trains an ensemble of isolation trees on extracted numerical telemetry features (`[template_freq, severity_num, time_delta, params_count, burst_zscore]`).
 - **Tier 3 (Sequence Mining)**: Flags improbable state transitions across sliding execution windows.
-- **Incident Correlator**: Groups anomalies by shared temporal locality and topology identifiers into unified incident cards, achieving **up to 99.90% noise reduction**.
+- **Incident Correlator**: Groups anomalies by mined template, then merges across templates that share an entity and overlap in time, into unified incident cards. Measured at **88.21% (Linux) and 97.45% (OpenStack)** noise reduction.
 
 ### 4. Generative LLM Incident Reasoning & Copilot (OpenAI / Claude / Gemini)
 - **OpenAI Integration (Primary)**: Powered by OpenAI (`gpt-4o-mini` / `gpt-4o`) via `OPENAI_API_KEY` (leveraging hackathon OpenAI credits), with support for Anthropic Claude and Google Gemini.

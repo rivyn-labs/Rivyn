@@ -4,9 +4,10 @@ from backend.ai.anomaly_detector import HybridAnomalyDetector
 from backend.ai.sequence_miner import SequenceMiner
 from backend.ai.embeddings import LogEmbeddingIndex
 from backend.ai.llm_reasoner import GroundedReasoner
+from conftest import dataset_path
 
 def test_anomaly_detector():
-    batch = LogLoader.load_from_file("data/samples/Linux.log", max_lines=150)
+    batch = LogLoader.load_from_file(dataset_path("Linux.log"), max_lines=150)
     detector = HybridAnomalyDetector()
     analyzed = detector.detect_anomalies(batch.logs)
     anomalies = [l for l in analyzed if l.is_anomaly]
@@ -15,7 +16,7 @@ def test_anomaly_detector():
     assert max(l.anomaly_score for l in anomalies) >= 0.70
 
 def test_embeddings_and_retrieval():
-    batch = LogLoader.load_from_file("data/samples/HDFS.log", max_lines=100)
+    batch = LogLoader.load_from_file(dataset_path("HDFS.log"), max_lines=100)
     index = LogEmbeddingIndex(chunk_size=4)
     index.build_index(batch.logs)
     
@@ -26,7 +27,7 @@ def test_embeddings_and_retrieval():
     assert "PacketResponder" in chunk.text
 
 def test_grounded_reasoner_qa():
-    batch = LogLoader.load_from_file("data/samples/HDFS.log", max_lines=100)
+    batch = LogLoader.load_from_file(dataset_path("HDFS.log"), max_lines=100)
     index = LogEmbeddingIndex(chunk_size=4)
     index.build_index(batch.logs)
     
@@ -56,7 +57,7 @@ def test_grounded_reasoner_anthropic_mock(monkeypatch):
     monkeypatch.setattr(anthropic, "Anthropic", lambda **kwargs: fake_client)
     
     reasoner = GroundedReasoner(anthropic_api_key="sk-ant-test-key")
-    batch = LogLoader.load_from_file("data/samples/Linux.log", max_lines=50)
+    batch = LogLoader.load_from_file(dataset_path("Linux.log"), max_lines=50)
     incident = IncidentReport(
         id="inc-test",
         title="Initial",
@@ -90,7 +91,7 @@ def test_grounded_reasoner_openai_mock(monkeypatch):
     monkeypatch.setattr(openai, "OpenAI", lambda **kwargs: fake_client)
     
     reasoner = GroundedReasoner(openai_api_key="sk-proj-test-key")
-    batch = LogLoader.load_from_file("data/samples/Linux.log", max_lines=50)
+    batch = LogLoader.load_from_file(dataset_path("Linux.log"), max_lines=50)
     incident = IncidentReport(
         id="inc-openai-test",
         title="Initial",
