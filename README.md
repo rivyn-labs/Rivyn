@@ -3,8 +3,8 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![PyArrow](https://img.shields.io/badge/PyArrow-Columnar_Parquet-teal.svg)](https://arrow.apache.org/docs/python/)
 [![Scikit-Learn](https://img.shields.io/badge/Scikit_Learn-Isolation_Forest-F7931E.svg?logo=scikitlearn&logoColor=white)](https://scikit-learn.org)
-[![Anthropic Claude](https://img.shields.io/badge/Anthropic-Claude_3.5_LLM-D97706.svg?logo=anthropic&logoColor=white)](https://anthropic.com)
-[![Tests](https://img.shields.io/badge/pytest-31_passed-brightgreen.svg)](https://pytest.org)
+[![OpenAI GPT-4o](https://img.shields.io/badge/OpenAI-GPT--4o_LLM-412991.svg?logo=openai&logoColor=white)](https://openai.com)
+[![Tests](https://img.shields.io/badge/pytest-32_passed-brightgreen.svg)](https://pytest.org)
 [![MHP Challenge](https://img.shields.io/badge/MHP_Hackathon-Take_the_Money_and_Run-blueviolet.svg)](#)
 
 > **AETHER** is an enterprise-grade AI observability platform designed for the **MHP Hackathon ("Take the Money and Run")**. It transforms multi-gigabyte unformatted raw system logs into structured columnar binary storage (**Apache Parquet**), uncovers rare behavioral shifts using **Multi-Tier AI Anomaly Detection**, and clusters alert floods into root-cause incident tickets with **99.9% noise reduction** and **vectorized querying up to 21+ Million rows/second**.
@@ -109,9 +109,9 @@ Evaluated across the **three authoritative LogHub datasets** located in `data/sa
 - **Tier 3 (Sequence Mining)**: Flags improbable state transitions across sliding execution windows.
 - **Incident Correlator**: Groups anomalies by shared temporal locality and topology identifiers into unified incident cards, achieving **up to 99.90% noise reduction**.
 
-### 4. Generative LLM Incident Reasoning & Copilot (Claude 3.5 / OpenAI / Gemini)
-- **Anthropic Claude Integration**: Powered by Claude (`claude-3-5-haiku-20241022` or `claude-3-5-sonnet`) via `ANTHROPIC_API_KEY`, supporting OpenAI and Gemini as well.
-- **Root-Cause Synthesis**: Formulates executive summaries, technical root causes, and numbered remediation checklists using strict JSON schema validation.
+### 4. Generative LLM Incident Reasoning & Copilot (OpenAI / Claude / Gemini)
+- **OpenAI Integration (Primary)**: Powered by OpenAI (`gpt-4o-mini` / `gpt-4o`) via `OPENAI_API_KEY` (leveraging hackathon OpenAI credits), with support for Anthropic Claude and Google Gemini.
+- **Root-Cause Synthesis**: Generates executive summaries, technical root-cause hypotheses citing exact log lines, and numbered remediation checklists using strict JSON schema validation.
 - **Grounded Copilot (RAG)**: Conversational assistant answering natural language questions grounded strictly in retrieved log evidence passages with line citations (`[Line <id> @ <timestamp>]`).
 - **Deterministic Offline Fallback**: Automatically switches to the deterministic engine if no API key is provided or if network calls timeout, ensuring 100% offline reliability for hackathon presentations.
 

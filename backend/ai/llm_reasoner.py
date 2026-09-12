@@ -26,32 +26,33 @@ def _extract_json(text: str) -> Dict[str, Any]:
 class GroundedReasoner:
     """
     Evidence-First Reasoning Engine.
-    Supports Anthropic Claude, OpenAI, and Gemini with automatic fallback
-    to a high-accuracy, deterministic grounded rule engine.
+    Powered by OpenAI (GPT-4o / GPT-4o-mini) as the primary LLM provider,
+    with support for Anthropic Claude and Google Gemini, and a guaranteed
+    deterministic grounded rule engine fallback.
     """
 
     def __init__(
         self,
+        openai_api_key: Optional[str] = None,
         anthropic_api_key: Optional[str] = None,
         gemini_api_key: Optional[str] = None,
-        openai_api_key: Optional[str] = None,
         model: Optional[str] = None,
         timeout_sec: Optional[float] = None
     ):
-        self.anthropic_api_key = anthropic_api_key or getattr(settings, "anthropic_api_key", None) or os.getenv("ANTHROPIC_API_KEY")
         self.openai_api_key = openai_api_key or getattr(settings, "openai_api_key", None) or os.getenv("OPENAI_API_KEY")
+        self.anthropic_api_key = anthropic_api_key or getattr(settings, "anthropic_api_key", None) or os.getenv("ANTHROPIC_API_KEY")
         self.gemini_api_key = gemini_api_key or getattr(settings, "gemini_api_key", None) or os.getenv("GEMINI_API_KEY")
-        self.model = model or getattr(settings, "llm_model", "claude-3-5-haiku-20241022")
+        self.model = model or getattr(settings, "llm_model", "gpt-4o-mini")
         self.timeout_sec = timeout_sec or getattr(settings, "llm_timeout_sec", 12.0)
 
     @property
     def has_llm_provider(self) -> bool:
-        return bool(self.anthropic_api_key or self.openai_api_key or self.gemini_api_key)
+        return bool(self.openai_api_key or self.anthropic_api_key or self.gemini_api_key)
 
     def explain_incident(self, incident: IncidentReport, logs_map: Dict[int, NormalizedLog]) -> IncidentReport:
         """
         Synthesize incident title, root-cause hypothesis, and remediation plan
-        from correlated evidence logs using Claude/LLM or deterministic fallback.
+        from correlated evidence logs using OpenAI / LLM or deterministic fallback.
         """
         evidence_logs = [logs_map[lid] for lid in incident.evidence_log_ids if lid in logs_map]
         if not evidence_logs:
@@ -60,7 +61,7 @@ class GroundedReasoner:
             incident.recommended_action = "Expand log collection window and check upstream services."
             return incident
 
-        # Attempt LLM reasoning if provider key is configured
+        # Attempt LLM reasoning if an API key is configured
         if self.has_llm_provider:
             try:
                 explanation = self._explain_with_llm(incident, evidence_logs)
@@ -72,31 +73,29 @@ class GroundedReasoner:
                     incident.confidence = float(explanation.get("confidence", incident.confidence))
                     return incident
             except Exception as e:
-                logger.warning(f"LLM API reasoning failed ({e}). Falling back to deterministic engine.")
+                logger.warning(f"LLM API incident explanation failed ({e}). Falling back to deterministic engine.")
 
         # Built-in High-Accuracy Grounded Inference Engine (Deterministic Fallback)
         return self._explain_deterministic(incident, evidence_logs)
 
     def _explain_with_llm(self, incident: IncidentReport, evidence_logs: List[NormalizedLog]) -> Optional[Dict[str, Any]]:
-        """Call active LLM provider (Claude -> OpenAI -> Gemini) for structured root cause."""
+        """Route to active LLM provider: OpenAI -> Anthropic -> Gemini."""
         formatted_logs = "\n".join(
             f"Line {l.id} [{l.timestamp}] [{l.level}] {l.service}: {l.message}"
-            for l in evidence_logs[:25]  # Cap to most informative 25 lines
+            for l in evidence_logs[:25]
         )
 
-        if self.anthropic_api_key:
-            return self._call_anthropic_incident(formatted_logs)
-        elif self.openai_api_key:
+        if self.openai_api_key:
             return self._call_openai_incident(formatted_logs)
+        elif self.anthropic_api_key:
+            return self._call_anthropic_incident(formatted_logs)
         elif self.gemini_api_key:
             return self._call_gemini_incident(formatted_logs)
         return None
 
-    def _call_anthropic_incident(self, formatted_logs: str) -> Dict[str, Any]:
-        """Invoke Anthropic Claude API for structured incident analysis."""
-        import anthropic
-        client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=self.timeout_sec)
-        system_prompt = (
+    def _call_openai_incident(self, formatted_logs: str) -> Dict[str, Any]:
+        """Invoke OpenAI API (using OpenAI client or direct REST fallback) for structured root cause."""
+        prompt = (
             "You are an expert Principal Site Reliability Engineer (SRE) analyzing correlated system log anomalies. "
             "Analyze the provided log evidence and return ONLY a valid JSON object with the following fields:\n"
             "- title: A clear, concise incident title (max 8 words)\n"
@@ -106,31 +105,55 @@ class GroundedReasoner:
             "- confidence: Confidence float between 0.0 and 1.0\n"
             "Return ONLY the raw JSON object, with no markdown code fence and no surrounding commentary."
         )
+
+        # Try official OpenAI SDK client first
+        try:
+            import openai
+            client = openai.OpenAI(api_key=self.openai_api_key, timeout=self.timeout_sec)
+            target_model = self.model if ("gpt" in self.model or "o1" in self.model or "o3" in self.model) else "gpt-4o-mini"
+            completion = client.chat.completions.create(
+                model=target_model,
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": f"Correlated Incident Evidence Logs:\n{formatted_logs}"}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.2
+            )
+            return _extract_json(completion.choices[0].message.content)
+        except Exception:
+            # Direct REST fallback via httpx
+            url = "https://api.openai.com/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {self.openai_api_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": f"Correlated Incident Evidence Logs:\n{formatted_logs}"}
+                ],
+                "response_format": {"type": "json_object"},
+                "temperature": 0.2
+            }
+            res = httpx.post(url, json=payload, headers=headers, timeout=self.timeout_sec)
+            res.raise_for_status()
+            data = res.json()
+            return _extract_json(data["choices"][0]["message"]["content"])
+
+    def _call_anthropic_incident(self, formatted_logs: str) -> Dict[str, Any]:
+        """Invoke Anthropic Claude API for structured incident analysis."""
+        import anthropic
+        client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=self.timeout_sec)
+        system_prompt = (
+            "You are an expert Principal Site Reliability Engineer (SRE) analyzing correlated system log anomalies. "
+            "Analyze the provided log evidence and return ONLY a valid JSON object with: title, summary, root_cause, recommended_action, confidence (0.0-1.0)."
+        )
         response = client.messages.create(
-            model=self.model if "claude" in self.model else "claude-3-5-haiku-20241022",
+            model="claude-3-5-haiku-20241022",
             max_tokens=600,
             system=system_prompt,
-            messages=[{"role": "user", "content": f"Correlated Incident Evidence Logs:\n{formatted_logs}"}]
+            messages=[{"role": "user", "content": f"Evidence Logs:\n{formatted_logs}"}]
         )
         return _extract_json(response.content[0].text)
-
-    def _call_openai_incident(self, formatted_logs: str) -> Dict[str, Any]:
-        """Invoke OpenAI Chat Completions API via httpx."""
-        url = "https://api.openai.com/v1/chat/completions"
-        headers = {"Authorization": f"Bearer {self.openai_api_key}", "Content-Type": "application/json"}
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": [
-                {"role": "system", "content": "You are an SRE analyzing logs. Return a JSON object with: title, summary, root_cause, recommended_action, confidence (0.0-1.0)."},
-                {"role": "user", "content": f"Evidence logs:\n{formatted_logs}"}
-            ],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.2
-        }
-        res = httpx.post(url, json=payload, headers=headers, timeout=self.timeout_sec)
-        res.raise_for_status()
-        data = res.json()
-        return _extract_json(data["choices"][0]["message"]["content"])
 
     def _call_gemini_incident(self, formatted_logs: str) -> Dict[str, Any]:
         """Invoke Google Gemini REST API via httpx."""
@@ -210,7 +233,7 @@ class GroundedReasoner:
     def investigate_query(self, query: str, logs: List[NormalizedLog], embedding_index: LogEmbeddingIndex) -> Dict[str, Any]:
         """
         Interactive RAG Q&A grounded strictly on retrieved log evidence.
-        Uses Claude/LLM when available, with deterministic synthesis fallback.
+        Uses OpenAI / active LLM when available, with deterministic synthesis fallback.
         """
         top_chunks = embedding_index.search(query, top_k=3)
         if not top_chunks:
@@ -273,27 +296,60 @@ class GroundedReasoner:
         }
 
     def _investigate_with_llm(self, query: str, evidence: List[Dict[str, Any]]) -> Optional[str]:
-        """Generate grounded Copilot answer using Anthropic Claude or active LLM."""
+        """Generate grounded Copilot answer using OpenAI (primary) or active LLM."""
         formatted_evidence = "\n".join(
             f"- Line {ev['log_id']} @ {ev['timestamp']} [{ev['level']}] {ev['service']}: {ev['message']}"
             for ev in evidence
         )
 
-        if self.anthropic_api_key:
+        system_prompt = (
+            "You are AETHER Investigation Copilot, an expert site reliability observability assistant. "
+            "Answer the user's question using strictly the provided log evidence. "
+            "Always cite exact log lines (e.g. [Line 42 @ 2026-09-12T10:00:00]). "
+            "If the evidence does not support answering the question, state that clearly and abstain from guessing."
+        )
+        user_prompt = f"User Question: {query}\n\nRetrieved Log Evidence:\n{formatted_evidence}"
+
+        if self.openai_api_key:
+            try:
+                import openai
+                client = openai.OpenAI(api_key=self.openai_api_key, timeout=self.timeout_sec)
+                target_model = self.model if ("gpt" in self.model or "o1" in self.model or "o3" in self.model) else "gpt-4o-mini"
+                res = client.chat.completions.create(
+                    model=target_model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.2,
+                    max_tokens=400
+                )
+                return res.choices[0].message.content.strip()
+            except Exception:
+                url = "https://api.openai.com/v1/chat/completions"
+                headers = {"Authorization": f"Bearer {self.openai_api_key}", "Content-Type": "application/json"}
+                payload = {
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "temperature": 0.2,
+                    "max_tokens": 400
+                }
+                res = httpx.post(url, json=payload, headers=headers, timeout=self.timeout_sec)
+                res.raise_for_status()
+                return res.json()["choices"][0]["message"]["content"].strip()
+
+        elif self.anthropic_api_key:
             import anthropic
             client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=self.timeout_sec)
-            system_prompt = (
-                "You are AETHER Investigation Copilot, an expert site reliability observability assistant. "
-                "Answer the user's question using strictly the provided log evidence. "
-                "Always cite exact log lines (e.g. [Line 42 @ 2026-09-12T10:00:00]). "
-                "If the evidence does not support answering the question, state that clearly and abstain from guessing."
-            )
-            user_prompt = f"User Question: {query}\n\nRetrieved Log Evidence:\n{formatted_evidence}"
             res = client.messages.create(
-                model=self.model if "claude" in self.model else "claude-3-5-haiku-20241022",
+                model="claude-3-5-haiku-20241022",
                 max_tokens=500,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_prompt}]
             )
             return res.content[0].text.strip()
+
         return None
