@@ -51,6 +51,7 @@ htmlcov/
 *.tar.gz
 *.tgz
 data/raw/
+data/samples_expanded/
 !data/samples/
 
 # OS generated
