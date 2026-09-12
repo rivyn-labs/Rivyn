@@ -227,8 +227,9 @@ pip install -r requirements.txt
 ```bash
 python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000
 ```
-Open **`http://localhost:8000`** in your browser.
-- Switch between **all 7 datasets** (Linux, OpenStack, ZooKeeper, Hadoop, Spark, BGL, HDFS).
+Open **`http://localhost:8000`** in your browser. The presentation landing page
+does not pre-load a dataset; upload a log, or explicitly load one of the three
+selector datasets (**HDFS, OpenStack, Spark**).
 - View real-time alert noise reduction KPIs, Drain template graphs, and incident cards.
 - Investigate root causes interactively with the AI Investigation Copilot (OpenAI `gpt-4o-mini`).
 

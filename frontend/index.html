@@ -42,18 +42,14 @@
     <div class="header-controls">
       <label for="datasetSelect" class="header-label">Dataset</label>
       <select id="datasetSelect" class="select-dataset">
-        <option value="openstack">OpenStack</option>
-        <option value="linux" selected>Linux</option>
-        <option value="zookeeper">ZooKeeper</option>
-        <option value="hadoop">Hadoop</option>
-        <option value="spark">Spark</option>
-        <option value="bgl">BlueGene/L</option>
         <option value="hdfs">HDFS</option>
+        <option value="openstack">OpenStack</option>
+        <option value="spark" selected>Spark</option>
       </select>
 
-      <button id="btnUpdateDataset" class="btn btn-secondary" title="Re-ingest selected dataset and refresh dashboard">
+      <button id="btnUpdateDataset" class="btn btn-secondary" title="Load the selected demo dataset">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Update
+        Load sample
       </button>
 
       <button id="btnUploadModal" class="btn btn-secondary">

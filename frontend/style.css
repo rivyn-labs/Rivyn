@@ -1299,5 +1299,6 @@ tbody tr.row-anomaly:hover { filter: brightness(0.98); }
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
+  #logTable td.empty-state::before { content: none; }
   #logTable td:nth-child(5) { min-width: 0; }
 }

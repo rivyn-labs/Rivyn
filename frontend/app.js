@@ -2,6 +2,7 @@
 
 const INCIDENT_PAGE_SIZE = 12;
 let incidentOffset = 0;
+let dashboardHasData = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
@@ -40,7 +41,7 @@ function initTheme() {
 function bindEvents() {
   const datasetSelect = document.getElementById("datasetSelect");
 
-  // Update button: re-ingest selected dataset and refresh dashboard
+  // Load the explicitly selected presentation dataset; startup stays empty.
   const btnUpdate = document.getElementById("btnUpdateDataset");
   btnUpdate.addEventListener("click", async () => {
     btnUpdate.disabled = true;
@@ -49,7 +50,7 @@ function bindEvents() {
       await switchDataset(datasetSelect.value);
     } finally {
       btnUpdate.disabled = false;
-      btnUpdate.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Update`;
+      btnUpdate.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Load sample`;
     }
   });
 
@@ -101,8 +102,8 @@ function bindEvents() {
 }
 
 async function refreshDashboard() {
+  await fetchOverview();
   await Promise.all([
-    fetchOverview(),
     fetchIncidents(),
     fetchTimeline(),
     fetchLogs()
@@ -111,14 +112,9 @@ async function refreshDashboard() {
 
 async function switchDataset(datasetName) {
   try {
-    let linesCount = 50000;
-    if (datasetName === "openstack") linesCount = 207820;
-    else if (datasetName === "linux") linesCount = 25567;
-    else if (datasetName === "zookeeper") linesCount = 74380;
-    else if (datasetName === "hadoop") linesCount = 394310;
-    else if (datasetName === "spark") linesCount = 100000;
-    else if (datasetName === "bgl") linesCount = 100000;
-    else if (datasetName === "hdfs") linesCount = 100000;
+    const demoLineCounts = { openstack: 207820, spark: 100000, hdfs: 100000 };
+    const linesCount = demoLineCounts[datasetName];
+    if (!linesCount) return;
 
     const res = await fetch("/api/ingest/sample", {
       method: "POST",
@@ -138,6 +134,7 @@ async function fetchOverview() {
   try {
     const res = await fetch("/api/analysis/overview");
     const data = await res.json();
+    dashboardHasData = data.status === "active";
     if (data.status === "active") {
       document.getElementById("kpiNoiseReduction").textContent = `${data.metrics.noise_reduction_ratio}%`;
       document.getElementById("kpiIncidents").textContent = data.metrics.incidents_count;
@@ -145,6 +142,13 @@ async function fetchOverview() {
       document.getElementById("kpiSpeedup").textContent = `${data.metrics.triage_speedup_ratio}x`;
       document.getElementById("kpiDialect").textContent = (data.detected_format || "generic").toUpperCase();
       document.getElementById("kpiLogsCount").textContent = `${data.total_logs} logs parsed (${data.templates_count} templates)`;
+    } else {
+      document.getElementById("kpiNoiseReduction").textContent = "--%";
+      document.getElementById("kpiIncidents").textContent = "--";
+      document.getElementById("kpiAnomaliesSub").textContent = "Upload a log to begin";
+      document.getElementById("kpiSpeedup").textContent = "--x";
+      document.getElementById("kpiDialect").textContent = "--";
+      document.getElementById("kpiLogsCount").textContent = "No logs loaded";
     }
 
     // Fetch Binary Storage Engine Stats
@@ -163,6 +167,12 @@ async function fetchOverview() {
 async function fetchIncidents() {
   const container = document.getElementById("incidentGrid");
   const countBadge = document.getElementById("incidentCountBadge");
+  if (!dashboardHasData) {
+    countBadge.textContent = "Awaiting a log upload";
+    container.innerHTML = `<div class="empty-state">Upload a presentation log or load one of the three demo datasets to begin analysis.</div>`;
+    document.getElementById("incidentPagination").innerHTML = "";
+    return;
+  }
   try {
     const res = await fetch(`/api/analysis/incidents?limit=${INCIDENT_PAGE_SIZE}&offset=${incidentOffset}`);
     const data = await res.json();
@@ -254,6 +264,10 @@ function renderIncidentPagination(total, offset, limit) {
 
 async function fetchTimeline() {
   const container = document.getElementById("timelineBars");
+  if (!dashboardHasData) {
+    container.innerHTML = "";
+    return;
+  }
   try {
     const res = await fetch("/api/analysis/timeline?buckets=35");
     const data = await res.json();
@@ -287,6 +301,11 @@ async function fetchTimeline() {
 async function fetchLogs() {
   const tableBody = document.getElementById("logTableBody");
   const countLabel = document.getElementById("logTableCount");
+  if (!dashboardHasData) {
+    countLabel.textContent = "Awaiting a log upload";
+    tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">Upload a log to view parsed events here.</td></tr>`;
+    return;
+  }
   const search = document.getElementById("logSearch").value;
   const severity = document.getElementById("severityFilter").value;
   const anomaliesOnly = document.getElementById("anomaliesOnlyCheck").checked;
