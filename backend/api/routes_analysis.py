@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, List, Dict, Any
 from collections import Counter
 from backend.api.state import state
+from backend.analytics.metrics import ObservabilityEvaluator
 
 router = APIRouter(prefix="/api/analysis", tags=["Analysis"])
 
@@ -23,14 +24,38 @@ def get_overview():
         "incidents_count": batch.metrics.incidents_count,
         "noise_reduction_ratio": batch.metrics.noise_reduction_ratio,
         "level_breakdown": dict(levels_count),
-        "metrics": batch.metrics.model_dump()
+        "metrics": batch.metrics.model_dump(),
+        "triage_baseline": {
+            "kind": "modeled",
+            "manual_seconds_per_anomalous_log": ObservabilityEvaluator.MANUAL_REVIEW_SEC_PER_LOG,
+            "description": "Manual review is modeled at 15 seconds per anomalous log; it is not a human-timed study."
+        }
     }
 
 @router.get("/incidents")
-def get_incidents():
+def get_incidents(
+    limit: int = Query(12, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
     if not state.current_batch:
-        return {"incidents": []}
-    return {"incidents": [inc.model_dump() for inc in state.current_batch.incidents]}
+        return {"total": 0, "offset": offset, "limit": limit, "incidents": []}
+
+    severity_rank = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
+    ranked = sorted(
+        state.current_batch.incidents,
+        key=lambda incident: (
+            severity_rank.get(incident.severity.upper(), 4),
+            -incident.confidence,
+            -incident.event_count,
+            incident.start_time or "",
+        ),
+    )
+    return {
+        "total": len(ranked),
+        "offset": offset,
+        "limit": limit,
+        "incidents": [inc.model_dump() for inc in ranked[offset : offset + limit]],
+    }
 
 @router.get("/logs")
 def get_logs(

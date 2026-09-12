@@ -25,7 +25,12 @@ class TimestampParser:
     CURRENT_YEAR = datetime.now().year
 
     @classmethod
-    def parse(cls, line: str, fallback_index: int = 0) -> Tuple[Optional[str], Optional[float], str]:
+    def parse(
+        cls,
+        line: str,
+        fallback_index: int = 0,
+        syslog_year: Optional[int] = None,
+    ) -> Tuple[Optional[str], Optional[float], str]:
         """
         Extracts timestamp from line if present, and returns:
         (iso_timestamp_str, epoch_timestamp_float, line_without_timestamp)
@@ -69,7 +74,11 @@ class TimestampParser:
             # Normalize double space in "Jun  4"
             normalized_ts = re.sub(r'\s+', ' ', raw_ts)
             try:
-                dt = datetime.strptime(f"{cls.CURRENT_YEAR} {normalized_ts}", "%Y %b %d %H:%M:%S")
+                # RFC 3164 syslog does not contain a year.  Bundled benchmark
+                # datasets provide one through provenance; uploaded logs retain
+                # the current-year fallback rather than inventing a fixed value.
+                year = syslog_year or cls.CURRENT_YEAR
+                dt = datetime.strptime(f"{year} {normalized_ts}", "%Y %b %d %H:%M:%S")
                 return dt.isoformat(), dt.timestamp(), line[:m.start()] + line[m.end():]
             except Exception:
                 pass

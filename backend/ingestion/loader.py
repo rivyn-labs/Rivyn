@@ -10,6 +10,14 @@ class LogLoader:
     detects dialect structure, and coordinates normalized parsing.
     """
 
+    # RFC 3164 syslog omits the year.  These values come from the LogHub
+    # dataset provenance, not from the local file timestamp, so parsing is
+    # deterministic across developer machines and CI.
+    DATASET_SYSLOG_YEARS = {
+        "linux": 2005,
+        "linux_full": 2005,
+    }
+
     @classmethod
     def load_from_file(cls, filepath: str, max_lines: int = 5000, dataset_name: Optional[str] = None) -> LogBatch:
         if not os.path.exists(filepath):
@@ -50,7 +58,8 @@ class LogLoader:
         dialect = detection["dialect"]
 
         # 2. Parse all lines
-        parser = GenericLogParser()
+        syslog_year = cls.DATASET_SYSLOG_YEARS.get(dataset_name.lower())
+        parser = GenericLogParser(syslog_year=syslog_year)
         normalized_logs: List[NormalizedLog] = []
 
         for idx, line in enumerate(clean_lines, start=1):

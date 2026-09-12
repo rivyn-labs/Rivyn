@@ -206,9 +206,17 @@ Processes and benchmarks all 7 datasets (2.7M+ lines), generating `data/benchmar
 ```bash
 python -m pytest tests/ -v
 ```
-All **32 unit and end-to-end integration tests pass**.
+The semantic-retrieval test automatically skips when its optional model is
+not installed. Run this command on the presentation machine and report the
+exact result rather than relying on a stale test-count claim.
 
-### 5. Security & Secrets Management
+### 5. Interpret Triage Speedup Correctly
+The dashboard's triage-speedup KPI compares measured pipeline time against a
+**modeled** 15-seconds-per-anomalous-log manual baseline. It is not a human
+timed study. See [the baseline comparison protocol](docs/baseline_comparison.md)
+for the reproducible human-review evaluation used for final validation.
+
+### 6. Security & Secrets Management
 API keys (such as `OPENAI_API_KEY`) are loaded from `.env` via `python-dotenv`. `.env` and all credential files are strictly excluded via `.gitignore` and are never committed to version control. An example template is provided in `.env.example`.
 
 ---

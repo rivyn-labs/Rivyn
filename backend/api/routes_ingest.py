@@ -11,6 +11,7 @@ from backend.ai.llm_reasoner import GroundedReasoner
 from backend.analytics.metrics import ObservabilityEvaluator
 from backend.storage.binary_engine import BinaryLogEngine
 from backend.api.state import state
+from backend.config import settings
 
 router = APIRouter(prefix="/api", tags=["Ingestion"])
 
@@ -53,7 +54,9 @@ def _process_and_store(batch):
     index.build_index(batch.logs)
 
     # Big Data Binary Columnar Serialization
-    bin_save_stats = BinaryLogEngine.save_batch(batch, output_dir="data/binary")
+    bin_save_stats = BinaryLogEngine.save_batch(
+        batch, output_dir=os.path.join(settings.data_dir, "binary")
+    )
     bin_scan_stats = BinaryLogEngine.scan_anomalies_vectorized(bin_save_stats["file_path"])
 
     state.current_batch = batch
@@ -87,30 +90,32 @@ def list_available_datasets():
 def ingest_sample(req: SampleIngestRequest):
     ds = req.dataset.lower()
     if ds in ("openstack", "openstack_full"):
-        filepath = "data/samples/OpenStack.log"
+        filepath = os.path.join(settings.samples_dir, "OpenStack.log")
         lines_limit = req.max_lines or 207820
     elif ds in ("linux", "linux_full"):
-        filepath = "data/samples/Linux.log"
+        filepath = os.path.join(settings.samples_dir, "Linux.log")
         lines_limit = req.max_lines or 25567
     elif ds in ("zookeeper", "zookeeper_full"):
-        filepath = "data/samples/Zookeeper.log" if os.path.exists("data/samples/Zookeeper.log") else "data/samples/Zookeeper/Zookeeper.log"
+        flat_path = os.path.join(settings.samples_dir, "Zookeeper.log")
+        filepath = flat_path if os.path.exists(flat_path) else os.path.join(settings.samples_dir, "Zookeeper", "Zookeeper.log")
         lines_limit = req.max_lines or 74380
     elif ds in ("hadoop", "hadoop_full"):
-        filepath = "data/samples/Hadoop.log"
+        filepath = os.path.join(settings.samples_dir, "Hadoop.log")
         lines_limit = req.max_lines or 394310
     elif ds in ("spark", "spark_sample"):
-        filepath = "data/samples/Spark.log"
+        filepath = os.path.join(settings.samples_dir, "Spark.log")
         lines_limit = req.max_lines or 100000
     elif ds in ("bgl", "bgl_sample", "bgl_full"):
-        filepath = "data/samples/BGL/BGL.log" if os.path.exists("data/samples/BGL/BGL.log") else "data/samples/BGL.log"
+        nested_path = os.path.join(settings.samples_dir, "BGL", "BGL.log")
+        filepath = nested_path if os.path.exists(nested_path) else os.path.join(settings.samples_dir, "BGL.log")
         lines_limit = req.max_lines or 100000
     elif ds in ("hdfs", "hdfs_big", "hdfs_full"):
-        filepath = "data/samples/HDFS.log"
+        filepath = os.path.join(settings.samples_dir, "HDFS.log")
         lines_limit = req.max_lines or 100000
     else:
-        filepath = f"data/samples/{req.dataset}.log"
+        filepath = os.path.join(settings.samples_dir, f"{req.dataset}.log")
         if not os.path.exists(filepath):
-            filepath = f"data/samples/{req.dataset}/{req.dataset}.log"
+            filepath = os.path.join(settings.samples_dir, req.dataset, f"{req.dataset}.log")
         lines_limit = req.max_lines or 50000
 
     if not os.path.exists(filepath):

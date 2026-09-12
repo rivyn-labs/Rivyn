@@ -84,9 +84,9 @@
     </div>
 
     <div class="kpi-card success">
-      <div class="kpi-title">Triage Velocity</div>
+      <div class="kpi-title">Modeled Triage Speedup</div>
       <div class="kpi-value" id="kpiSpeedup">--x</div>
-      <div class="kpi-subtext">Faster time-to-root-cause</div>
+      <div class="kpi-subtext" id="kpiSpeedupSub">vs. 15s per anomalous log baseline</div>
     </div>
 
     <div class="kpi-card">
@@ -157,6 +157,7 @@
       <div id="incidentGrid" class="incident-grid">
         <!-- Dynamically populated by app.js -->
       </div>
+      <nav id="incidentPagination" class="incident-pagination" aria-label="Incident pages"></nav>
     </section>
 
     <!-- Temporal Density & Anomaly Timeline -->

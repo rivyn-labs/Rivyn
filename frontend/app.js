@@ -1,5 +1,8 @@
 // AETHER AI Observability - Frontend Controller
 
+const INCIDENT_PAGE_SIZE = 12;
+let incidentOffset = 0;
+
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
 });
@@ -122,7 +125,8 @@ async function switchDataset(datasetName) {
       body: JSON.stringify({ dataset: datasetName, max_lines: linesCount })
     });
     if (res.ok) {
-      await refreshDashboard();
+    incidentOffset = 0;
+    await refreshDashboard();
     }
   } catch (err) {
     console.error("Failed to switch dataset:", err);
@@ -138,6 +142,11 @@ async function fetchOverview() {
       document.getElementById("kpiIncidents").textContent = data.metrics.incidents_count;
       document.getElementById("kpiAnomaliesSub").textContent = `from ${data.metrics.anomalies_count} raw anomalies`;
       document.getElementById("kpiSpeedup").textContent = `${data.metrics.triage_speedup_ratio}x`;
+      const baseline = data.triage_baseline;
+      if (baseline) {
+        document.getElementById("kpiSpeedupSub").textContent =
+          `vs. ${baseline.manual_seconds_per_anomalous_log}s per anomalous log baseline`;
+      }
       document.getElementById("kpiDialect").textContent = (data.detected_format || "generic").toUpperCase();
       document.getElementById("kpiLogsCount").textContent = `${data.total_logs} logs parsed (${data.templates_count} templates)`;
     }
@@ -159,11 +168,12 @@ async function fetchIncidents() {
   const container = document.getElementById("incidentGrid");
   const countBadge = document.getElementById("incidentCountBadge");
   try {
-    const res = await fetch("/api/analysis/incidents");
+    const res = await fetch(`/api/analysis/incidents?limit=${INCIDENT_PAGE_SIZE}&offset=${incidentOffset}`);
     const data = await res.json();
     const incidents = data.incidents || [];
+    const total = data.total || 0;
 
-    countBadge.textContent = `${incidents.length} incidents detected`;
+    countBadge.textContent = `${total} incidents · ranked by severity and confidence`;
     container.innerHTML = "";
 
     if (incidents.length === 0) {
@@ -206,9 +216,44 @@ async function fetchIncidents() {
       `;
       container.appendChild(card);
     });
+    renderIncidentPagination(total, data.offset || 0, data.limit || INCIDENT_PAGE_SIZE);
   } catch (err) {
     console.error("Error fetching incidents:", err);
   }
+}
+
+function renderIncidentPagination(total, offset, limit) {
+  const pagination = document.getElementById("incidentPagination");
+  pagination.innerHTML = "";
+  if (total <= limit) return;
+
+  const start = offset + 1;
+  const end = Math.min(offset + limit, total);
+  const pageLabel = document.createElement("span");
+  pageLabel.className = "section-meta";
+  pageLabel.textContent = `Showing ${start}–${end} of ${total}`;
+
+  const previous = document.createElement("button");
+  previous.type = "button";
+  previous.className = "btn btn-secondary pagination-btn";
+  previous.textContent = "Previous";
+  previous.disabled = offset === 0;
+  previous.addEventListener("click", () => {
+    incidentOffset = Math.max(0, offset - limit);
+    fetchIncidents();
+  });
+
+  const next = document.createElement("button");
+  next.type = "button";
+  next.className = "btn btn-secondary pagination-btn";
+  next.textContent = "Next";
+  next.disabled = offset + limit >= total;
+  next.addEventListener("click", () => {
+    incidentOffset = offset + limit;
+    fetchIncidents();
+  });
+
+  pagination.append(previous, pageLabel, next);
 }
 
 async function fetchTimeline() {

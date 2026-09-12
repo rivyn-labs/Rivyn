@@ -27,7 +27,8 @@ logger = logging.getLogger("ObservabilityApp")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Pre-populate complete LogHub Linux dataset (or HDFS fallback)
-    sample_file = "data/samples/Linux.log" if os.path.exists("data/samples/Linux.log") else "data/samples/hdfs_sample.log"
+    linux_sample = os.path.join(settings.samples_dir, "Linux.log")
+    sample_file = linux_sample if os.path.exists(linux_sample) else os.path.join(settings.samples_dir, "hdfs_sample.log")
     dataset_name = "linux_full" if "Linux.log" in sample_file else "hdfs"
     if os.path.exists(sample_file):
         try:
@@ -56,7 +57,9 @@ async def lifespan(app: FastAPI):
 
             # Binary Columnar Parquet Serialization
             from backend.storage.binary_engine import BinaryLogEngine
-            bin_save = BinaryLogEngine.save_batch(batch, output_dir="data/binary")
+            bin_save = BinaryLogEngine.save_batch(
+                batch, output_dir=os.path.join(settings.data_dir, "binary")
+            )
             bin_scan = BinaryLogEngine.scan_anomalies_vectorized(bin_save["file_path"])
             state.binary_stats = {**bin_save, **bin_scan}
 

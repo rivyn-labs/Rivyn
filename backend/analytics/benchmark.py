@@ -6,6 +6,7 @@ from backend.ai.anomaly_detector import HybridAnomalyDetector
 from backend.ai.incident_correlator import IncidentCorrelator
 from backend.ai.llm_reasoner import GroundedReasoner
 from backend.analytics.metrics import ObservabilityEvaluator
+from backend.config import settings
 
 class BenchmarkRunner:
     """
@@ -14,18 +15,18 @@ class BenchmarkRunner:
     """
 
     SAMPLE_FILES = {
-        "linux": "data/samples/Linux.log",
-        "openstack": "data/samples/OpenStack.log",
-        "zookeeper": "data/samples/Zookeeper.log",
-        "hadoop": "data/samples/Hadoop.log",
-        "spark": "data/samples/Spark.log",
-        "bgl": "data/samples/BGL/BGL.log",
-        "hdfs": "data/samples/HDFS.log"
+        "linux": os.path.join(settings.samples_dir, "Linux.log"),
+        "openstack": os.path.join(settings.samples_dir, "OpenStack.log"),
+        "zookeeper": os.path.join(settings.samples_dir, "Zookeeper.log"),
+        "hadoop": os.path.join(settings.samples_dir, "Hadoop.log"),
+        "spark": os.path.join(settings.samples_dir, "Spark.log"),
+        "bgl": os.path.join(settings.samples_dir, "BGL", "BGL.log"),
+        "hdfs": os.path.join(settings.samples_dir, "HDFS.log")
     }
 
     ALT_FILES = {
-        "zookeeper": "data/samples/Zookeeper/Zookeeper.log",
-        "bgl": "data/samples/BGL.log"
+        "zookeeper": os.path.join(settings.samples_dir, "Zookeeper", "Zookeeper.log"),
+        "bgl": os.path.join(settings.samples_dir, "BGL.log")
     }
 
     @classmethod

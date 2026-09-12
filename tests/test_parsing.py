@@ -2,6 +2,7 @@ import pytest
 from backend.parsing.timestamp_parser import TimestampParser
 from backend.parsing.drain_parser import DrainParser
 from backend.parsing.generic_parser import GenericLogParser
+from backend.ingestion.loader import LogLoader
 from backend.normalization.entity_extractor import EntityExtractor
 from backend.normalization.redactor import DataGovernor
 
@@ -17,6 +18,20 @@ def test_timestamp_parser_hdfs():
     iso_ts, epoch, rem = TimestampParser.parse(line)
     assert iso_ts is not None
     assert epoch is not None
+
+def test_timestamp_parser_syslog_uses_supplied_dataset_year():
+    line = "Jul 09 19:34:06 host sshd[42]: authentication failure"
+    iso_ts, epoch, rem = TimestampParser.parse(line, syslog_year=2005)
+    assert iso_ts == "2005-07-09T19:34:06"
+    assert epoch is not None
+    assert "authentication failure" in rem
+
+def test_linux_loghub_dataset_uses_its_provenance_year():
+    batch = LogLoader.load_from_lines(
+        ["Jul 09 19:34:06 host sshd[42]: authentication failure"],
+        dataset_name="linux",
+    )
+    assert batch.logs[0].timestamp.startswith("2005-")
 
 def test_drain_parser_clustering():
     drain = DrainParser()

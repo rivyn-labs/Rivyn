@@ -39,11 +39,14 @@ def test_e2e_ingest_and_query():
     res_ov = client.get("/api/analysis/overview")
     assert res_ov.status_code == 200
     assert res_ov.json()["status"] == "active"
+    assert res_ov.json()["triage_baseline"]["kind"] == "modeled"
 
     # Check incidents
-    res_inc = client.get("/api/analysis/incidents")
+    res_inc = client.get("/api/analysis/incidents?limit=3&offset=0")
     assert res_inc.status_code == 200
     assert len(res_inc.json()["incidents"]) > 0
+    assert res_inc.json()["total"] >= len(res_inc.json()["incidents"])
+    assert len(res_inc.json()["incidents"]) <= 3
 
     # Query Copilot
     res_qa = client.post("/api/investigate/query", json={"query": "authentication failure"})

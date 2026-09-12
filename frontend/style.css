@@ -431,6 +431,24 @@ header {
   gap: var(--sp-4);
 }
 
+.incident-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.pagination-btn {
+  min-height: 36px;
+  padding: 0 var(--sp-3);
+}
+
+.pagination-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .incident-card {
   display: flex;
   flex-direction: column;

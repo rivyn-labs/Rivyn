@@ -30,8 +30,9 @@ class GenericLogParser:
 
     RE_LEVEL = re.compile(r'\b(DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|ERR|FATAL|CRITICAL|SEVERE|FAILURE|FAILED)\b', re.IGNORECASE)
 
-    def __init__(self):
+    def __init__(self, syslog_year: Optional[int] = None):
         self.drain = DrainParser(depth=4, st=0.5)
+        self.syslog_year = syslog_year
 
     def parse_line(self, line: str, line_id: int, dialect: str = "generic") -> NormalizedLog:
         raw_clean = line.strip()
@@ -40,7 +41,11 @@ class GenericLogParser:
         sanitized_raw = DataGovernor.sanitize(raw_clean)
 
         # 2. Extract Timestamp
-        iso_ts, epoch_ts, rem_line = TimestampParser.parse(sanitized_raw, fallback_index=line_id)
+        iso_ts, epoch_ts, rem_line = TimestampParser.parse(
+            sanitized_raw,
+            fallback_index=line_id,
+            syslog_year=self.syslog_year,
+        )
 
         # 3. Detect Severity / Level
         level = LogSeverity.INFO.value

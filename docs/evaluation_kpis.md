@@ -10,9 +10,13 @@ The evaluation of AETHER is aligned directly with the **MHP Challenge 1: AI-Powe
 - **Target**: Compare manual triage time vs. AI automated triage time.
 - **Metric Formula**:
   $$\text{Speedup Factor} = \frac{\text{Estimated Manual Time}}{\text{AI Pipeline Elapsed Time}}$$
-  - Industry benchmark: Manual review requires ~15 seconds per raw error log line.
-  - AETHER automated batch triage: Sub-second analysis + deterministic incident aggregation.
-- **Achieved Outcome**: **10x - 25x faster triage speedup** across all LogHub benchmark datasets.
+  - **Modeled baseline:** 15 seconds per anomalous log, used consistently for
+    reproducible planning comparisons.
+  - AETHER automated batch triage: measured parser, detector, and correlation
+    elapsed time plus deterministic incident aggregation.
+- **Reporting rule:** Label the resulting speedup as *modeled* until the
+  human-review protocol in [`baseline_comparison.md`](baseline_comparison.md)
+  has been completed.
 
 ### 2. Higher Precision (Precision@K)
 - **Target**: Measure the percentage of true actionable anomalies within the top $k$ highest-scoring logs.
