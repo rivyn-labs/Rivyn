@@ -38,6 +38,10 @@ class DrainParser:
         r'(?P<IP>\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?::\d+)?\b)|'
         r'(?P<BLOCK>\bblk_-?\d+\b)|'
         r'(?P<REQ>\breq-[0-9a-fA-F-]{8,}\b)|'
+        # BlueGene/L node coordinate, e.g. R02-M1-N0-C:J12-U11 or R16-M1-N2-I:J17-U01.
+        # Without this each physical node yields its own template for the same
+        # logical event, which is what pushed BGL to 843 templates over 2,000 lines.
+        r'(?P<NODE>\bR\d{2}-M\d+-[0-9A-Z]+-[A-Z](?::J\d+-U\d+)?\b)|'
         r'(?P<HEX>\b0x[0-9a-fA-F]+\b)|'
         r'(?P<HASH>\b[0-9a-fA-F]{8,}\b)|'
         r'(?P<PATH>/[\w\-./]+)|'

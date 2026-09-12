@@ -73,6 +73,25 @@ class IncidentCorrelator:
         return keys
 
     @staticmethod
+    def _concrete_entities(log: NormalizedLog) -> Set[str]:
+        """
+        Only genuinely identifying entities -- block, request, user, node.
+
+        Deliberately excludes service and host, which are far too broad to mean
+        "the same actor" when deciding whether a long quiet gap ends a run.
+        """
+        keys: Set[str] = set()
+        for k in CORRELATION_ENTITY_KEYS:
+            v = log.entities.get(k)
+            if v is None:
+                continue
+            if isinstance(v, list):
+                keys.update(f"{k}:{item}" for item in v)
+            else:
+                keys.add(f"{k}:{v}")
+        return keys
+
+    @staticmethod
     def _span(group: List[NormalizedLog]) -> Tuple[float, float]:
         # Fast O(1) span since logs in group are ordered chronologically
         t_start = 0.0
@@ -133,7 +152,17 @@ class IncidentCorrelator:
             run = [entries[0]]
             for prev, cur in zip(entries, entries[1:]):
                 gap = (cur.timestamp_epoch or 0.0) - (prev.timestamp_epoch or 0.0)
-                if gap > self.session_gap_sec:
+
+                # A quiet gap normally ends a run, so next month's recurrence is
+                # not folded into today's outage. But when both occurrences name
+                # the same concrete actor -- the same node, block or request --
+                # they are one continuing fault however far apart they fall. BGL
+                # is the clear case: 666 anomalies spread over seven months with
+                # a median gap of ~650s, where a fixed window fragments a single
+                # failing node into dozens of separate incidents.
+                same_actor = bool(self._concrete_entities(prev) & self._concrete_entities(cur))
+
+                if gap > self.session_gap_sec and not same_actor:
                     groups.append(run)
                     run = [cur]
                 else:
