@@ -20,10 +20,16 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+  <div class="signal-atmosphere" aria-hidden="true">
+    <span class="signal-orb signal-orb-one"></span>
+    <span class="signal-orb signal-orb-two"></span>
+    <span class="signal-grid"></span>
+    <span class="signal-noise"></span>
+  </div>
 
   <!-- Top Navigation Bar -->
   <header>
@@ -38,8 +44,8 @@
     <div class="header-controls">
       <label for="datasetSelect" class="header-label">Dataset</label>
       <select id="datasetSelect" class="select-dataset">
-        <option value="openstack" selected>OpenStack Cloud (207,820 Lines - 100% Complete)</option>
-        <option value="linux">Linux Syslog (25,567 Lines - 100% Complete)</option>
+        <option value="openstack">OpenStack Cloud (207,820 Lines - 100% Complete)</option>
+        <option value="linux" selected>Linux Syslog (25,567 Lines - 100% Complete)</option>
         <option value="zookeeper">Apache ZooKeeper (74,380 Lines - 100% Complete)</option>
         <option value="hadoop">Apache Hadoop (394,310 Lines - 100% Complete)</option>
         <option value="spark">Apache Spark (500,000 Lines Milestone)</option>
@@ -68,6 +74,19 @@
       </button>
     </div>
   </header>
+
+  <section class="signal-hero" aria-labelledby="signalHeroTitle">
+    <div class="signal-hero-copy">
+      <p class="signal-eyebrow"><span></span> Evidence-first observability</p>
+      <h1 id="signalHeroTitle">See the signal<br><em>before</em> the incident.</h1>
+      <p class="signal-hero-summary">AETHER turns heterogeneous logs into ranked, evidence-linked decisions—without asking your team to trust a black box.</p>
+    </div>
+    <div class="signal-status" aria-label="Platform capabilities">
+      <div class="signal-status-head"><span class="live-dot"></span> System signal</div>
+      <div class="signal-status-value">Grounded</div>
+      <div class="signal-status-meta">Parse · correlate · explain</div>
+    </div>
+  </section>
 
   <!-- KPI Banner -->
   <section class="kpi-banner" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));" aria-label="Key performance indicators">
