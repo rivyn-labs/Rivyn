@@ -138,7 +138,8 @@ a clean-looking table.
   it pulls in torch, a multi-gigabyte download, and the base clone must stay
   runnable. `LogEmbeddingIndex.backend` reports which is active
   (`"semantic"` / `"tfidf"`), and nothing breaks without it.
-- **LLM reasoning is opt-in.** Without an API key the platform serves its
+- **LLM reasoning is opt-in.** The configured default is `gpt-5.6-terra` with
+  `high` reasoning. Without an API key the platform serves its
   deterministic rule-based narratives, so incident text on the board may come from
   either the LLM or the rule engine and the response does not currently say which.
 - **HDFS tests skip on a fresh clone.** Five tests depend on the 1.58 GB
@@ -169,10 +170,11 @@ and commit metadata.
   analysis. Errors and duplicate-upload feedback remain visible in the dialog.
   On narrow screens the log explorer switches to labeled compact records so
   message text does not collapse into unreadable columns.
-- LLM: a real `gpt-4o-mini` call via local `OPENAI_API_KEY` was verified against
-  a three-line incident. Credentials remain only in ignored `.env`; the app
-  calls the model for at most three changed incidents per ingest, then retains
-  deterministic evidence-linked fallback coverage.
+- LLM: the restarted local app reported `gpt-5.6-terra` with `high` reasoning
+  and completed OpenAI Chat Completions for a small upload. Credentials remain
+  only in ignored `.env`; the app calls the model for at most three changed
+  incidents per ingest, then retains deterministic evidence-linked fallback
+  coverage.
 - Tests: ingestion and parsing suites pass (19 tests). The all-in-one end-to-end
   suite's final large benchmark exceeds this machine's one-minute terminal
   window, so it is deliberately recorded as incomplete rather than passed.
@@ -198,7 +200,10 @@ and commit metadata.
 - **Incident Correlator**: Groups anomalies by mined template, then merges across templates that share an entity and overlap in time, into unified incident cards. Measured at **88.21% (Linux) and 97.45% (OpenStack)** noise reduction.
 
 ### 4. Generative LLM Incident Reasoning & Copilot (OpenAI / Claude / Gemini)
-- **OpenAI Integration (Primary)**: Powered by OpenAI (`gpt-4o-mini` / `gpt-4o`) via `OPENAI_API_KEY` (leveraging hackathon OpenAI credits), with support for Anthropic Claude and Google Gemini.
+- **OpenAI Integration (Primary)**: Powered by OpenAI `gpt-5.6-terra` with
+  `high` reasoning via `OPENAI_API_KEY` (leveraging hackathon OpenAI credits),
+  with support for Anthropic Claude and Google Gemini. The model can be changed
+  with `LLM_MODEL` and its effort with `LLM_REASONING_EFFORT`.
 - **Root-Cause Synthesis**: Generates executive summaries, technical root-cause hypotheses citing exact log lines, and numbered remediation checklists using strict JSON schema validation.
 - **Grounded Copilot (RAG)**: Conversational assistant answering natural language questions grounded strictly in retrieved log evidence passages with line citations (`[Line <id> @ <timestamp>]`).
 - **Deterministic Offline Fallback**: Automatically switches to the deterministic engine if no API key is provided or if network calls timeout, ensuring 100% offline reliability for hackathon presentations.
@@ -233,7 +238,8 @@ Open **`http://localhost:8000`** in your browser. The presentation landing page
 does not pre-load a dataset; upload a log, or explicitly load one of the three
 selector datasets (**HDFS, OpenStack, Spark**).
 - View real-time alert noise reduction KPIs, Drain template graphs, and incident cards.
-- Investigate root causes interactively with the AI Investigation Copilot (OpenAI `gpt-4o-mini`).
+- Investigate root causes interactively with the AI Investigation Copilot (OpenAI
+  `gpt-5.6-terra`, `high` reasoning by default).
 
 ### 3. Run the Automated Benchmarks
 ```bash

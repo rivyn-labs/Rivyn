@@ -103,6 +103,7 @@ def get_ai_status():
         "openai_configured": bool(reasoner.openai_api_key),
         "active_provider": "openai" if reasoner.openai_api_key else "deterministic_fallback",
         "model": reasoner.model if reasoner.openai_api_key else None,
+        "reasoning_effort": reasoner.reasoning_effort if reasoner.openai_api_key else None,
         "max_incidents_per_ingestion": settings.llm_max_incidents_per_ingestion,
     }
 

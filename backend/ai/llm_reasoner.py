@@ -26,7 +26,7 @@ def _extract_json(text: str) -> Dict[str, Any]:
 class GroundedReasoner:
     """
     Evidence-First Reasoning Engine.
-    Powered by OpenAI (GPT-4o / GPT-4o-mini) as the primary LLM provider,
+    Powered by OpenAI (GPT-5.6 Terra by default) as the primary LLM provider,
     with support for Anthropic Claude and Google Gemini, and a guaranteed
     deterministic grounded rule engine fallback.
     """
@@ -37,12 +37,14 @@ class GroundedReasoner:
         anthropic_api_key: Optional[str] = None,
         gemini_api_key: Optional[str] = None,
         model: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
         timeout_sec: Optional[float] = None
     ):
         self.openai_api_key = openai_api_key if openai_api_key is not None else (getattr(settings, "openai_api_key", None) or os.getenv("OPENAI_API_KEY"))
         self.anthropic_api_key = anthropic_api_key if anthropic_api_key is not None else (getattr(settings, "anthropic_api_key", None) or os.getenv("ANTHROPIC_API_KEY"))
         self.gemini_api_key = gemini_api_key if gemini_api_key is not None else (getattr(settings, "gemini_api_key", None) or os.getenv("GEMINI_API_KEY"))
-        self.model = model or getattr(settings, "llm_model", "gpt-4o-mini")
+        self.model = model or getattr(settings, "llm_model", "gpt-5.6-terra")
+        self.reasoning_effort = reasoning_effort or getattr(settings, "llm_reasoning_effort", "high")
         self.timeout_sec = timeout_sec or getattr(settings, "llm_timeout_sec", 12.0)
 
     @property
@@ -110,15 +112,14 @@ class GroundedReasoner:
         try:
             import openai
             client = openai.OpenAI(api_key=self.openai_api_key, timeout=self.timeout_sec)
-            target_model = self.model if ("gpt" in self.model or "o1" in self.model or "o3" in self.model) else "gpt-4o-mini"
             completion = client.chat.completions.create(
-                model=target_model,
+                model=self.model,
                 messages=[
-                    {"role": "system", "content": prompt},
+                    {"role": "developer", "content": prompt},
                     {"role": "user", "content": f"Correlated Incident Evidence Logs:\n{formatted_logs}"}
                 ],
                 response_format={"type": "json_object"},
-                temperature=0.2
+                reasoning_effort=self.reasoning_effort,
             )
             return _extract_json(completion.choices[0].message.content)
         except Exception:
@@ -126,13 +127,13 @@ class GroundedReasoner:
             url = "https://api.openai.com/v1/chat/completions"
             headers = {"Authorization": f"Bearer {self.openai_api_key}", "Content-Type": "application/json"}
             payload = {
-                "model": "gpt-4o-mini",
+                "model": self.model,
                 "messages": [
-                    {"role": "system", "content": prompt},
+                    {"role": "developer", "content": prompt},
                     {"role": "user", "content": f"Correlated Incident Evidence Logs:\n{formatted_logs}"}
                 ],
                 "response_format": {"type": "json_object"},
-                "temperature": 0.2
+                "reasoning_effort": self.reasoning_effort,
             }
             res = httpx.post(url, json=payload, headers=headers, timeout=self.timeout_sec)
             res.raise_for_status()
@@ -314,28 +315,27 @@ class GroundedReasoner:
             try:
                 import openai
                 client = openai.OpenAI(api_key=self.openai_api_key, timeout=self.timeout_sec)
-                target_model = self.model if ("gpt" in self.model or "o1" in self.model or "o3" in self.model) else "gpt-4o-mini"
                 res = client.chat.completions.create(
-                    model=target_model,
+                    model=self.model,
                     messages=[
-                        {"role": "system", "content": system_prompt},
+                        {"role": "developer", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
-                    temperature=0.2,
-                    max_tokens=400
+                    reasoning_effort=self.reasoning_effort,
+                    max_completion_tokens=400,
                 )
                 return res.choices[0].message.content.strip()
             except Exception:
                 url = "https://api.openai.com/v1/chat/completions"
                 headers = {"Authorization": f"Bearer {self.openai_api_key}", "Content-Type": "application/json"}
                 payload = {
-                    "model": "gpt-4o-mini",
+                    "model": self.model,
                     "messages": [
-                        {"role": "system", "content": system_prompt},
+                        {"role": "developer", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
-                    "temperature": 0.2,
-                    "max_tokens": 400
+                    "reasoning_effort": self.reasoning_effort,
+                    "max_completion_tokens": 400,
                 }
                 res = httpx.post(url, json=payload, headers=headers, timeout=self.timeout_sec)
                 res.raise_for_status()

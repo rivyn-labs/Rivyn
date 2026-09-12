@@ -1,6 +1,6 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+from typing import Literal, Optional
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -15,7 +15,9 @@ class Settings(BaseSettings):
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
-    llm_model: str = "gpt-4o-mini"
+    # Default model for API-backed incident analysis and Copilot answers.
+    llm_model: str = "gpt-5.6-terra"
+    llm_reasoning_effort: Literal["none", "low", "medium", "high", "xhigh", "max"] = "high"
     llm_timeout_sec: float = 12.0
     llm_max_incidents_per_ingestion: int = 3
     anomaly_threshold: float = 0.55

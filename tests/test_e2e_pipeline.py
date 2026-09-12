@@ -83,7 +83,7 @@ def test_e2e_ai_status_does_not_expose_a_key():
     res = client.get("/api/ai/status")
     assert res.status_code == 200
     data = res.json()
-    assert set(data) == {"openai_configured", "active_provider", "model", "max_incidents_per_ingestion"}
+    assert set(data) == {"openai_configured", "active_provider", "model", "reasoning_effort", "max_incidents_per_ingestion"}
 
 def test_e2e_ingest_and_query():
     # Ingest linux sample
