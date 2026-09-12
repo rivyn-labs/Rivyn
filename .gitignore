@@ -63,3 +63,9 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
+
+# Local dev server output
+server*.log
+
+# Local editor/agent config
+.claude/
