@@ -12,24 +12,24 @@ All datasets are structured with zero ambiguity:
 
 ## Master Dataset Matrix
 
-| System | Domain | Log Format / System Description | 2k Slice | Full Log Available | Ground Truth Structured | Ground Truth Templates | Anomaly Ground Truth |
+| System | Domain | Log Format / System Description | 2k Slice | Full Production Log | Ground Truth Structured | Ground Truth Templates | Anomaly Ground Truth |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **HDFS** | Distributed Systems | Hadoop Distributed File System (Block generation, replication, termination) | :white_check_mark: | :white_check_mark: (100k lines) | :white_check_mark: | :white_check_mark: | :white_check_mark: (`anomaly_label.csv`) |
-| **Hadoop** | Distributed Systems | MapReduce cluster task execution, job history & shuffle logs | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **Spark** | Distributed Systems | Apache Spark distributed in-memory compute framework & worker logs | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **Zookeeper**| Distributed Systems | Apache ZooKeeper leader election, quorum consensus & client state | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **OpenStack**| Distributed Systems | Cloud Infrastructure (Nova compute, Keystone auth, Neutron net) | :white_check_mark: | :white_check_mark: (207.8k lines) | :white_check_mark: | :white_check_mark: | :white_check_mark: (`anomaly_labels.txt`) |
-| **BGL** | Supercomputers | BlueGene/L Supercomputer hardware alerts, parity errors & core dumps | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | :white_check_mark: (First column tag) |
-| **HPC** | Supercomputers | High Performance Computing Linux cluster SLURM / PBS job logs | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **Thunderbird**| Supercomputers| Thunderbird Supercomputer hardware events & memory parity alerts | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | :white_check_mark: (First column tag) |
-| **Linux** | Operating Systems | Linux OS syslog, auth.log, PAM sessions, SSH login attempts | :white_check_mark: | :white_check_mark: (25.5k lines) | :white_check_mark: | :white_check_mark: | — |
-| **Mac** | Operating Systems | Apple macOS subsystem daemon logs, sandbox alerts & crash reporter | :white_check_mark: | :white_check_mark: (117.2k lines) | :white_check_mark: | :white_check_mark: | — |
-| **Windows** | Operating Systems | Windows Event Logs (System & Security event streams) | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **Android** | Mobile Systems | Android OS framework, ActivityManager, window manager logs | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **HealthApp**| Mobile Systems | Android health application step tracking, sync routines & GPS events | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **Apache** | Server Apps | Apache HTTP Web Server error logs, rewrite notices & HTTP codes | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **OpenSSH** | Server Apps | OpenSSH daemon remote authentication handshakes & terminations | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
-| **Proxifier**| Server Apps | Network tunneling proxy traffic, SOCKS5/HTTPS routing & DNS | :white_check_mark: | — | :white_check_mark: | :white_check_mark: | — |
+| **HDFS** | Distributed Systems | Hadoop Distributed File System (Block generation, replication, termination) | :white_check_mark: | :white_check_mark: **1,504.88 MB** (11.2M lines) | :white_check_mark: | :white_check_mark: | :white_check_mark: (`anomaly_label.csv` 17.2 MB) |
+| **Hadoop** | Distributed Systems | MapReduce cluster task execution, job history & shuffle logs | :white_check_mark: | :white_check_mark: **30.41 MB** (394k lines) | :white_check_mark: | :white_check_mark: | — |
+| **Spark** | Distributed Systems | Apache Spark distributed in-memory compute framework & worker logs | :white_check_mark: | :white_check_mark: **1,553.87 MB** (33.2M lines) | :white_check_mark: | :white_check_mark: | — |
+| **Zookeeper**| Distributed Systems | Apache ZooKeeper leader election, quorum consensus & client state | :white_check_mark: | :white_check_mark: **9.85 MB** (74.3k lines) | :white_check_mark: | :white_check_mark: | — |
+| **OpenStack**| Distributed Systems | Cloud Infrastructure (Nova compute, Keystone auth, Neutron net) | :white_check_mark: | :white_check_mark: **58.79 MB** (207.8k lines) | :white_check_mark: | :white_check_mark: | :white_check_mark: (`anomaly_labels.txt`) |
+| **BGL** | Supercomputers | BlueGene/L Supercomputer hardware alerts, parity errors & core dumps | :white_check_mark: | :white_check_mark: **708.76 MB** (4.7M lines) | :white_check_mark: | :white_check_mark: | :white_check_mark: (First column tag) |
+| **HPC** | Supercomputers | High Performance Computing Linux cluster SLURM / PBS job logs | :white_check_mark: | :white_check_mark: **31.10 MB** (433k lines) | :white_check_mark: | :white_check_mark: | — |
+| **Thunderbird**| Supercomputers| Thunderbird Supercomputer hardware events & memory parity alerts | :white_check_mark: | :white_check_mark: **845.25 MB** | :white_check_mark: | :white_check_mark: | :white_check_mark: (First column tag) |
+| **Linux** | Operating Systems | Linux OS syslog, auth.log, PAM sessions, SSH login attempts | :white_check_mark: | :white_check_mark: **2.27 MB** (25.5k lines) | :white_check_mark: | :white_check_mark: | — |
+| **Mac** | Operating Systems | Apple macOS subsystem daemon logs, sandbox alerts & crash reporter | :white_check_mark: | :white_check_mark: **16.10 MB** (117.2k lines) | :white_check_mark: | :white_check_mark: | — |
+| **Windows** | Operating Systems | Windows Event Logs (System & Security event streams) | :white_check_mark: | — (2k slice) | :white_check_mark: | :white_check_mark: | — |
+| **Android** | Mobile Systems | Android OS framework, ActivityManager, window manager logs | :white_check_mark: | — (2k slice) | :white_check_mark: | :white_check_mark: | — |
+| **HealthApp**| Mobile Systems | Android health application step tracking, sync routines & GPS events | :white_check_mark: | :white_check_mark: **19.53 MB** (253k lines) | :white_check_mark: | :white_check_mark: | — |
+| **Apache** | Server Apps | Apache HTTP Web Server error logs, rewrite notices & HTTP codes | :white_check_mark: | :white_check_mark: **4.75 MB** (56.4k lines) | :white_check_mark: | :white_check_mark: | — |
+| **OpenSSH** | Server Apps | OpenSSH daemon remote authentication handshakes & terminations | :white_check_mark: | :white_check_mark: **67.27 MB** (655k lines) | :white_check_mark: | :white_check_mark: | — |
+| **Proxifier**| Server Apps | Network tunneling proxy traffic, SOCKS5/HTTPS routing & DNS | :white_check_mark: | :white_check_mark: **2.40 MB** (21.3k lines) | :white_check_mark: | :white_check_mark: | — |
 
 ---
 

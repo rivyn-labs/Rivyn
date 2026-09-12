@@ -54,6 +54,8 @@ data/raw/
 data/samples_expanded/
 !data/samples/
 temp_*/
+data/loghub/**/raw/*_full.log
+data/samples/HDFS.log
 
 # OS generated
 Thumbs.db
