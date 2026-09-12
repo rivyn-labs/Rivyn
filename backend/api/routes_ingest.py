@@ -112,7 +112,7 @@ def ingest_sample(req: SampleIngestRequest):
 
 @router.post("/ingest/upload")
 async def ingest_upload(
-    file: UploadFile = File(...), source_id: Optional[str] = Form(None), source_line_offset: int = Form(0)
+    file: UploadFile = File(...), source_id: Optional[str] = Form(None), source_line_offset: int = Form(0, ge=0)
 ):
     contents = await file.read()
     text = contents.decode("utf-8", errors="ignore")
@@ -120,12 +120,21 @@ async def ingest_upload(
     if not lines:
         raise HTTPException(status_code=400, detail="The uploaded file contains no log lines.")
 
+    selected_lines = lines[source_line_offset:source_line_offset + UPLOAD_LINE_LIMIT]
+    if not selected_lines:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No log lines exist at or after source line {source_line_offset + 1}.",
+        )
+
     dataset_name = file.filename or "uploaded_file"
     previous_total = state.datasets.get(dataset_name).batch.total_lines if dataset_name in state.datasets else 0
+    accepted_lines = len(selected_lines)
     batch = IncrementalIngestor.ingest(
-        lines[:UPLOAD_LINE_LIMIT], dataset_name,
+        selected_lines, dataset_name,
         source_id=source_id or dataset_name, source_line_offset=source_line_offset,
     )
+    new_lines = batch.total_lines - previous_total
 
     return {
         "status": "success",
@@ -136,9 +145,13 @@ async def ingest_upload(
         "incidents_count": batch.metrics.incidents_count,
         "noise_reduction_ratio": f"{batch.metrics.noise_reduction_ratio}%",
         "submitted_lines": len(lines),
-        "accepted_lines": min(len(lines), UPLOAD_LINE_LIMIT),
-        "new_lines": batch.total_lines - previous_total,
-        "truncated": len(lines) > UPLOAD_LINE_LIMIT,
+        "accepted_lines": accepted_lines,
+        "source_line_start": source_line_offset + 1,
+        "source_line_end": source_line_offset + accepted_lines,
+        "next_source_line": source_line_offset + accepted_lines + 1,
+        "new_lines": new_lines,
+        "duplicate": accepted_lines > 0 and new_lines == 0,
+        "truncated": source_line_offset + accepted_lines < len(lines),
     }
 
 @router.post("/ingest/raw")

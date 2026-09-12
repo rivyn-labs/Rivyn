@@ -1226,6 +1226,25 @@ tbody tr.row-anomaly:hover { filter: brightness(0.98); }
   font-size: 0.82rem;
 }
 
+.upload-offset-label {
+  display: block;
+  margin: calc(var(--sp-2) * -1) 0 var(--sp-1);
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.upload-offset-input {
+  width: 100%;
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font: inherit;
+}
+
 .upload-status {
   min-height: 1.25rem;
   margin: calc(var(--sp-2) * -1) 0 var(--sp-4);

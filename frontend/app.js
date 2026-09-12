@@ -379,6 +379,7 @@ async function askCopilot() {
 
 async function handleFileUpload() {
   const fileInput = document.getElementById("fileInput");
+  const startLineInput = document.getElementById("uploadStartLine");
   const status = document.getElementById("uploadStatus");
   const submit = document.getElementById("btnSubmitUpload");
   if (!fileInput.files.length) {
@@ -387,8 +388,11 @@ async function handleFileUpload() {
   }
 
   const file = fileInput.files[0];
+  const startLine = Math.max(1, Number.parseInt(startLineInput.value, 10) || 1);
+  startLineInput.value = startLine;
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("source_line_offset", String(startLine - 1));
 
   submit.disabled = true;
   submit.textContent = "Analyzing…";
@@ -400,12 +404,20 @@ async function handleFileUpload() {
     });
     const data = await res.json();
     if (res.ok) {
-      const truncation = data.truncated ? ` First ${data.accepted_lines.toLocaleString()} lines analyzed.` : "";
       // `new_lines` was introduced after the first upload API.  Fall back to
       // `total_lines` so a rolling frontend/backend deploy cannot turn a
       // successful ingestion into a UI error.
       const processedLines = Number.isFinite(data.new_lines) ? data.new_lines : data.total_lines;
-      status.textContent = `Processed ${processedLines.toLocaleString()} new log lines.${truncation}`;
+      const rangeStart = data.source_line_start ?? startLine;
+      const rangeEnd = data.source_line_end ?? (startLine + data.accepted_lines - 1);
+      const range = `${rangeStart.toLocaleString()}–${rangeEnd.toLocaleString()}`;
+      if (data.duplicate || processedLines === 0) {
+        const nextLine = data.next_source_line ?? (rangeEnd + 1);
+        status.textContent = `No new lines added: ${file.name} lines ${range} were already ingested. Set Start at source line to ${nextLine.toLocaleString()} to ingest the next chunk.`;
+      } else {
+        const capped = data.truncated ? " The rest of the file was not uploaded in this chunk." : "";
+        status.textContent = `Added ${processedLines.toLocaleString()} new log lines from ${range}.${capped}`;
+      }
       fileInput.value = "";
       await refreshDashboard();
     } else {

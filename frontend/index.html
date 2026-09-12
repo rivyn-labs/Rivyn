@@ -249,9 +249,11 @@
         <button id="btnCloseModal" class="close-btn" aria-label="Close dialog">&times;</button>
       </div>
       <p class="modal-desc">
-        Select any text or log file. The first 2,000 lines are analyzed in this upload; repeat uploads are de-duplicated safely by source line and content.
+        Select any text or log file. Each upload analyzes up to 2,000 lines from the chosen starting line. Repeated ranges are safely de-duplicated.
       </p>
       <input type="file" id="fileInput" class="file-input" accept=".log,.txt,.csv" />
+      <label class="upload-offset-label" for="uploadStartLine">Start at source line</label>
+      <input type="number" id="uploadStartLine" class="upload-offset-input" value="1" min="1" step="1" inputmode="numeric" />
       <p id="uploadStatus" class="upload-status" role="status" aria-live="polite"></p>
       <div class="modal-actions">
         <button id="btnCancelUpload" class="btn btn-secondary">Cancel</button>

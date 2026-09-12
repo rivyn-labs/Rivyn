@@ -163,7 +163,9 @@ and commit metadata.
 - Upload flow: API-tested with a three-line log, empty-file rejection, and
   duplicate-upload idempotency. Browser-smoke-tested with the same local file:
   the UI refreshed to the three rows and displayed `Processed 0 new log lines`
-  for the expected duplicate upload; it now reports progress and readable errors.
+  for the expected duplicate upload. The UI now labels that outcome clearly and
+  lets an operator choose the next source-line range for sequential 2,000-line
+  ingestion; it also reports progress and readable errors.
 - LLM: a real `gpt-4o-mini` call via local `OPENAI_API_KEY` was verified against
   a three-line incident. Credentials remain only in ignored `.env`; the app
   calls the model for at most three changed incidents per ingest, then retains

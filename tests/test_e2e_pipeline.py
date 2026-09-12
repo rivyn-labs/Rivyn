@@ -42,17 +42,46 @@ def test_e2e_upload_small_log_and_duplicate_is_idempotent():
     assert first_data["submitted_lines"] == 3
     assert first_data["accepted_lines"] == 3
     assert first_data["new_lines"] == 3
+    assert first_data["duplicate"] is False
+    assert first_data["source_line_start"] == 1
+    assert first_data["source_line_end"] == 3
+    assert first_data["next_source_line"] == 4
     assert first_data["truncated"] is False
 
     second = client.post("/api/ingest/upload", files=files)
     assert second.status_code == 200
-    assert second.json()["new_lines"] == 0
+    duplicate_data = second.json()
+    assert duplicate_data["new_lines"] == 0
+    assert duplicate_data["duplicate"] is True
+    assert duplicate_data["next_source_line"] == 4
 
 
 def test_e2e_upload_rejects_empty_file():
     res = client.post("/api/ingest/upload", files={"file": ("empty.log", b"", "text/plain")})
     assert res.status_code == 400
     assert "no log lines" in res.json()["detail"]
+
+
+def test_e2e_upload_source_offset_selects_the_next_chunk():
+    content = b"\n".join(
+        f"2024-01-01 00:00:{index % 60:02d} INFO api: event {index}".encode()
+        for index in range(1, 2003)
+    )
+    files = {"file": ("offset-e2e.log", content, "text/plain")}
+
+    first = client.post("/api/ingest/upload", files=files)
+    assert first.status_code == 200
+    assert first.json()["accepted_lines"] == 2000
+    assert first.json()["truncated"] is True
+
+    second = client.post("/api/ingest/upload", files=files, data={"source_line_offset": "2000"})
+    assert second.status_code == 200
+    data = second.json()
+    assert data["source_line_start"] == 2001
+    assert data["source_line_end"] == 2002
+    assert data["accepted_lines"] == 2
+    assert data["new_lines"] == 2
+    assert data["truncated"] is False
 
 
 def test_e2e_ai_status_does_not_expose_a_key():
