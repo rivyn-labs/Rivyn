@@ -5,8 +5,33 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function initDashboard() {
+  initTheme();
   bindEvents();
   await refreshDashboard();
+}
+
+/**
+ * Light/dark theming. An explicit choice is stored in localStorage and wins;
+ * with no stored choice the page follows the OS preference via CSS media query.
+ */
+function initTheme() {
+  const toggle = document.getElementById("btnThemeToggle");
+  if (!toggle) return;
+
+  toggle.addEventListener("click", () => {
+    const root = document.documentElement;
+    const explicit = root.getAttribute("data-theme");
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const currentlyDark = explicit ? explicit === "dark" : systemDark;
+    const next = currentlyDark ? "light" : "dark";
+
+    root.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("aether-theme", next);
+    } catch (e) {
+      /* storage blocked (private mode) — theme still applies for this session */
+    }
+  });
 }
 
 function bindEvents() {
@@ -128,7 +153,7 @@ async function fetchIncidents() {
     container.innerHTML = "";
 
     if (incidents.length === 0) {
-      container.innerHTML = `<div style="grid-column: 1/-1; padding: 2rem; text-align: center; color: var(--text-muted);">No critical incidents detected in this log slice.</div>`;
+      container.innerHTML = `<div class="empty-state">No critical incidents detected in this log slice.</div>`;
       return;
     }
 
@@ -161,8 +186,8 @@ async function fetchIncidents() {
         </div>
 
         <div>
-          <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem;">Correlated Entities:</div>
-          <div class="evidence-tags">${evidenceTags || '<span style="color: var(--text-muted); font-size: 0.75rem;">None</span>'}</div>
+          <div class="field-label">Correlated Entities</div>
+          <div class="evidence-tags">${evidenceTags || '<span class="section-meta">None</span>'}</div>
         </div>
       `;
       container.appendChild(card);
@@ -225,7 +250,7 @@ async function fetchLogs() {
     tableBody.innerHTML = "";
 
     if (logs.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No logs match the current filters.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No logs match the current filters.</td></tr>`;
       return;
     }
 
@@ -240,11 +265,11 @@ async function fetchLogs() {
         <td class="log-id">#${l.id}</td>
         <td class="log-ts">${escapeHtml(timeStr)}</td>
         <td><span class="badge-level ${lvlClass}">${l.level}</span></td>
-        <td style="color: #93c5fd; font-family: var(--font-mono); font-size: 0.78rem;">${escapeHtml(l.service || '-')}</td>
+        <td class="log-service">${escapeHtml(l.service || '-')}</td>
         <td style="word-break: break-all;">${escapeHtml(l.message)}</td>
         <td><span class="tag">${l.template_id}</span></td>
         <td>
-          <span style="color: ${l.is_anomaly ? 'var(--accent-crimson)' : 'var(--text-muted)'}; font-family: var(--font-mono); font-weight: 700;">
+          <span class="log-score ${l.is_anomaly ? 'is-anomaly' : 'is-normal'}">
             ${l.anomaly_score.toFixed(2)}
           </span>
         </td>
@@ -284,13 +309,12 @@ async function askCopilot() {
 
     if (data.evidence && data.evidence.length > 0) {
       evidenceList.innerHTML = data.evidence.map(ev => `
-        <div class="tag" style="background: rgba(0, 229, 255, 0.1); border-color: var(--accent-cyan); color: #fff; cursor: pointer;"
-             title="${escapeHtml(ev.message)}">
-          Line #${ev.log_id} [${ev.service}]
+        <div class="tag evidence-tag-link" title="${escapeHtml(ev.message)}">
+          Line #${ev.log_id} [${escapeHtml(ev.service || '-')}]
         </div>
       `).join("");
     } else {
-      evidenceList.innerHTML = `<span style="color: var(--text-muted); font-size: 0.75rem;">None</span>`;
+      evidenceList.innerHTML = `<span class="section-meta">None</span>`;
     }
   } catch (err) {
     answerText.textContent = "Investigation query failed. Please try again.";
