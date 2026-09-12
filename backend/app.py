@@ -37,6 +37,7 @@ async def lifespan(app: FastAPI):
             batch.logs = HybridAnomalyDetector().detect_anomalies(batch.logs)
             incidents = IncidentCorrelator().correlate(batch.logs)
             logs_map = {l.id: l for l in batch.logs}
+            reasoner = GroundedReasoner()
             # Run LLM reasoning on top 8 incidents; deterministic on remainder to conserve API credits and startup speed
             for i, inc in enumerate(incidents):
                 if i < 8:
