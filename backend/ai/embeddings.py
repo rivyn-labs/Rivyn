@@ -1,8 +1,9 @@
 import numpy as np
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from backend.normalization.schema import NormalizedLog
+from backend.ai.semantic_encoder import SemanticEncoder
 
 class LogChunk:
     def __init__(self, chunk_id: str, logs: List[NormalizedLog]):
@@ -20,7 +21,7 @@ class LogEmbeddingIndex:
     and indexes them for semantic similarity search and RAG grounding.
     """
 
-    def __init__(self, chunk_size: int = 5):
+    def __init__(self, chunk_size: int = 5, use_semantic: bool = True):
         self.chunk_size = chunk_size
         self.chunks: List[LogChunk] = []
         self.vectorizer = TfidfVectorizer(
@@ -29,6 +30,10 @@ class LogEmbeddingIndex:
             token_pattern=r'(?u)\b\w+\b|[<*>]'
         )
         self.embeddings: Optional[np.ndarray] = None
+        # Dense vectors when a sentence-transformer is installed, otherwise the
+        # TF-IDF matrix above. Both answer search() identically.
+        self.encoder = SemanticEncoder.shared() if use_semantic else None
+        self.semantic_embeddings: Optional[np.ndarray] = None
 
     def build_index(self, logs: List[NormalizedLog]):
         if not logs:
@@ -59,15 +64,35 @@ class LogEmbeddingIndex:
                         covered_indices.add(start_i)
 
         texts = [c.text for c in self.chunks]
-        if texts:
-            self.embeddings = self.vectorizer.fit_transform(texts)
+        if not texts:
+            return
+
+        # TF-IDF is always built: it is the fallback, and it stays useful for
+        # exact identifiers (a block id, a request id) that dense vectors blur.
+        self.embeddings = self.vectorizer.fit_transform(texts)
+
+        if self.encoder is not None and self.encoder.is_available:
+            self.semantic_embeddings = self.encoder.encode(texts)
+
+    @property
+    def backend(self) -> str:
+        """Which retrieval backend answered, so results stay auditable."""
+        return "semantic" if self.semantic_embeddings is not None else "tfidf"
 
     def search(self, query: str, top_k: int = 3) -> List[Tuple[LogChunk, float]]:
         if self.embeddings is None or not self.chunks:
             return []
 
-        query_vec = self.vectorizer.transform([query])
-        scores = cosine_similarity(query_vec, self.embeddings)[0]
+        scores = None
+        if self.semantic_embeddings is not None:
+            query_emb = self.encoder.encode([query])
+            if query_emb is not None:
+                # Vectors are L2-normalised, so a dot product is cosine similarity.
+                scores = self.semantic_embeddings @ query_emb[0]
+
+        if scores is None:
+            query_vec = self.vectorizer.transform([query])
+            scores = cosine_similarity(query_vec, self.embeddings)[0]
 
         top_indices = np.argsort(scores)[::-1][:top_k]
         results = []

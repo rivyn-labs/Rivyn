@@ -4,7 +4,7 @@
 [![PyArrow](https://img.shields.io/badge/PyArrow-Columnar_Parquet-teal.svg)](https://arrow.apache.org/docs/python/)
 [![Scikit-Learn](https://img.shields.io/badge/Scikit_Learn-Isolation_Forest-F7931E.svg?logo=scikitlearn&logoColor=white)](https://scikit-learn.org)
 [![OpenAI GPT-4o](https://img.shields.io/badge/OpenAI-GPT--4o_LLM-412991.svg?logo=openai&logoColor=white)](https://openai.com)
-[![Tests](https://img.shields.io/badge/pytest-27_passed_5_skipped-brightgreen.svg)](https://pytest.org)
+[![Tests](https://img.shields.io/badge/pytest-31_passed_6_skipped-brightgreen.svg)](https://pytest.org)
 [![MHP Challenge](https://img.shields.io/badge/MHP_Hackathon-Take_the_Money_and_Run-blueviolet.svg)](#)
 
 > **AETHER** is an enterprise-grade AI observability platform designed for the **MHP Hackathon ("Take the Money and Run")**. It transforms multi-gigabyte unformatted raw system logs into structured columnar binary storage (**Apache Parquet**), uncovers rare behavioral shifts using **Multi-Tier AI Anomaly Detection**, and clusters alert floods into root-cause incident tickets, measured at **88-97% alert noise reduction** on the committed LogHub datasets.
@@ -50,7 +50,7 @@
         ▼
  ┌─────────────────────────────────────────────────────────┐
  │ 5. Grounded Copilot & Interactive Incident Board        │
- │    • Evidence-grounded TF-IDF retrieval with citations  │
+ │    • TF-IDF or semantic retrieval, always cited       │
  │    • Live Web Dashboard running at http://localhost:8000 │
  └─────────────────────────────────────────────────────────┘
 ```
@@ -89,6 +89,55 @@ Evaluated across **all 7 heterogeneous LogHub production datasets** in `data/sam
 | **Zero-Copy Scan Speed** | **408k rows/s** | **11.9M rows/s** | **6.6M rows/s** | **28.1M rows/s** | **25.4M rows/s** | **33.3M rows/s** | **21.0M rows/s** |
 
 *All benchmark results are automatically generated and verifiable via `scripts/benchmark_all_datasets.py` and stored in `data/benchmark_all_datasets.json` (Total: **2,701,198 lines** processed in 350.71s).*
+
+### Semantic retrieval: matching meaning, not wording
+
+MHP's opening slide poses the problem as `"find me all dogs"` returning a picture
+of a puppy. TF-IDF cannot do that -- it matches tokens, so a query only finds a
+log line if they literally share words.
+
+With `requirements-semantic.txt` installed, retrieval runs on dense embeddings
+instead. Measured on the same four-line corpus, using queries that deliberately
+share **no** vocabulary with the logs they should find:
+
+| Query | TF-IDF | Semantic |
+| :--- | :---: | :--- |
+| "brute force login attack" | no match | `authentication failure for user root` |
+| "disk replica pipeline aborted" | no match | `PacketResponder terminating for block` |
+| "faulty RAM hardware fault" | no match | `memory parity error corrected` |
+| "virtual machine created" | no match | `instance spawned successfully` |
+
+TF-IDF retrieves nothing in all four cases. Semantic retrieval finds the right
+line every time. Reproduce with `pytest tests/test_semantic_retrieval.py -v`.
+
+### Known limitations
+
+Stated plainly, because the MHP brief asks for documented limitations rather than
+a clean-looking table.
+
+- **BGL correlation remains the weakest at ~46% noise reduction**, though the
+  template miner no longer over-splits it (843 templates across 2,000 lines
+  reduced to 107 by stripping the BGL header and masking node coordinates).
+  What remains is genuine: BGL spans seven months of sparse, heterogeneous
+  hardware faults with little to consolidate.
+- **Ingestion is bounded by memory.** The pipeline holds every parsed line in RAM
+  as a Pydantic object, measured at roughly 3.5 KB per line. That puts a practical
+  ceiling near 1-2M lines on a 16 GB machine. Streaming ingestion is the next
+  architectural step and is not implemented.
+- **Semantic retrieval is opt-in.** The base install uses TF-IDF, which matches
+  wording rather than meaning, so a query for "brute force attack" will not reach
+  a line reading "authentication failure". Installing
+  `requirements-semantic.txt` switches retrieval to a sentence-transformer
+  (`all-MiniLM-L6-v2`) that matches meaning instead. It is kept optional because
+  it pulls in torch, a multi-gigabyte download, and the base clone must stay
+  runnable. `LogEmbeddingIndex.backend` reports which is active
+  (`"semantic"` / `"tfidf"`), and nothing breaks without it.
+- **LLM reasoning is opt-in.** Without an API key the platform serves its
+  deterministic rule-based narratives, so incident text on the board may come from
+  either the LLM or the rule engine and the response does not currently say which.
+- **HDFS tests skip on a fresh clone.** Five tests depend on the 1.58 GB
+  `HDFS.log`, which is not committed. They skip with an actionable message rather
+  than failing; fetch the dataset into `data/samples/` to run them.
 
 ---
 

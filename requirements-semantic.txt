@@ -1,0 +1,20 @@
+# Optional: dense semantic retrieval for the Investigation Copilot.
+#
+# Without this the platform uses TF-IDF, which matches wording rather than
+# meaning: a query for "brute force attack" will not reach a log line reading
+# "authentication failure", because they share no tokens. Installing this lets
+# retrieval follow meaning instead.
+#
+#     pip install -r requirements-semantic.txt
+#
+# This pulls in torch and is a multi-gigabyte download, which is why it is kept
+# out of requirements.txt -- the base install must stay clonable and runnable.
+# Nothing breaks without it; LogEmbeddingIndex reports backend == "tfidf" and
+# carries on.
+#
+# Model defaults to all-MiniLM-L6-v2 (~90 MB, 384 dimensions), downloaded on
+# first use and cached. Override with AETHER_SEMANTIC_MODEL.
+# Force TF-IDF even when installed with AETHER_DISABLE_SEMANTIC=1.
+
+-r requirements.txt
+sentence-transformers>=3.0.0
