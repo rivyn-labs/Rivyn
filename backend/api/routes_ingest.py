@@ -15,6 +15,9 @@ from backend.config import settings
 
 router = APIRouter(prefix="/api", tags=["Ingestion"])
 
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+MAX_UPLOAD_LINES = 200_000
+
 class SampleIngestRequest(BaseModel):
     dataset: str  # hdfs, bgl, linux, openstack, or hdfs_big, etc.
     max_lines: Optional[int] = None
@@ -80,9 +83,9 @@ def list_available_datasets():
         {"id": "linux", "name": "Linux", "type": "Operating System", "scale": "Complete LogHub", "file": "Linux.log"},
         {"id": "zookeeper", "name": "ZooKeeper", "type": "Distributed Coordination", "scale": "Complete LogHub", "file": "Zookeeper.log"},
         {"id": "hadoop", "name": "Hadoop", "type": "Big Data Compute", "scale": "Complete LogHub", "file": "Hadoop.log"},
-        {"id": "spark", "name": "Apache Spark (500,000 Lines Milestone)", "type": "Distributed Analytics", "scale": "Large Scale (500k)", "file": "Spark.log"},
-        {"id": "bgl", "name": "BlueGene/L Supercomputer (4.75M Lines - HPC)", "type": "Supercomputing / HPC", "scale": "Supercomputing Scale", "file": "BGL.log"},
-        {"id": "hdfs", "name": "HDFS Distributed FS (1.58 GB / 11M Lines)", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
+        {"id": "spark", "name": "Spark", "type": "Distributed Analytics", "scale": "Large Scale", "file": "Spark.log"},
+        {"id": "bgl", "name": "BlueGene/L", "type": "Supercomputing / HPC", "scale": "Supercomputing Scale", "file": "BGL.log"},
+        {"id": "hdfs", "name": "HDFS", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
     ]
     return {"datasets": datasets}
 
@@ -138,11 +141,16 @@ def ingest_sample(req: SampleIngestRequest):
 
 @router.post("/ingest/upload")
 async def ingest_upload(file: UploadFile = File(...)):
-    contents = await file.read()
+    contents = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(contents) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="Upload exceeds the 10 MiB demo limit. Use a smaller slice for this in-memory demo."
+        )
     text = contents.decode("utf-8", errors="ignore")
     lines = text.splitlines()
 
-    batch = LogLoader.load_from_lines(lines[:2000], dataset_name=file.filename or "uploaded_file")
+    batch = LogLoader.load_from_lines(lines[:MAX_UPLOAD_LINES], dataset_name=file.filename or "uploaded_file")
     _process_and_store(batch)
 
     return {

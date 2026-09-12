@@ -168,7 +168,7 @@ async function fetchIncidents() {
     const incidents = data.incidents || [];
     const total = data.total || 0;
 
-    countBadge.textContent = `${total} incidents · ranked by severity and confidence`;
+    countBadge.textContent = `Top ${incidents.length} of ${total} · ranked by severity and confidence`;
     container.innerHTML = "";
 
     if (incidents.length === 0) {

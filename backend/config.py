@@ -5,7 +5,7 @@ from typing import Optional
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    app_name: str = "AI-Powered Observability Platform"
+    app_name: str = "Rivyn"
     app_env: str = "development"
     app_host: str = "0.0.0.0"
     app_port: int = 8000
