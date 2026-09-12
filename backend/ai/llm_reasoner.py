@@ -2,23 +2,57 @@ import os
 import json
 import logging
 from typing import Any, Dict, List, Optional
+import httpx
+
+from backend.config import settings
 from backend.normalization.schema import IncidentReport, NormalizedLog
 from backend.ai.embeddings import LogEmbeddingIndex
 
 logger = logging.getLogger(__name__)
 
+
+def _extract_json(text: str) -> Dict[str, Any]:
+    """Clean markdown code fences and parse JSON payload."""
+    cleaned = text.strip()
+    if cleaned.startswith("```json"):
+        cleaned = cleaned[7:]
+    elif cleaned.startswith("```"):
+        cleaned = cleaned[3:]
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3]
+    return json.loads(cleaned.strip())
+
+
 class GroundedReasoner:
     """
     Evidence-First Reasoning Engine.
-    Produces ranked root-cause hypotheses, explainable narratives,
-    grounded evidence citations, and remediation action plans.
+    Supports Anthropic Claude, OpenAI, and Gemini with automatic fallback
+    to a high-accuracy, deterministic grounded rule engine.
     """
 
-    def __init__(self, gemini_api_key: Optional[str] = None, openai_api_key: Optional[str] = None):
-        self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY")
-        self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+    def __init__(
+        self,
+        anthropic_api_key: Optional[str] = None,
+        gemini_api_key: Optional[str] = None,
+        openai_api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        timeout_sec: Optional[float] = None
+    ):
+        self.anthropic_api_key = anthropic_api_key or getattr(settings, "anthropic_api_key", None) or os.getenv("ANTHROPIC_API_KEY")
+        self.openai_api_key = openai_api_key or getattr(settings, "openai_api_key", None) or os.getenv("OPENAI_API_KEY")
+        self.gemini_api_key = gemini_api_key or getattr(settings, "gemini_api_key", None) or os.getenv("GEMINI_API_KEY")
+        self.model = model or getattr(settings, "llm_model", "claude-3-5-haiku-20241022")
+        self.timeout_sec = timeout_sec or getattr(settings, "llm_timeout_sec", 12.0)
+
+    @property
+    def has_llm_provider(self) -> bool:
+        return bool(self.anthropic_api_key or self.openai_api_key or self.gemini_api_key)
 
     def explain_incident(self, incident: IncidentReport, logs_map: Dict[int, NormalizedLog]) -> IncidentReport:
+        """
+        Synthesize incident title, root-cause hypothesis, and remediation plan
+        from correlated evidence logs using Claude/LLM or deterministic fallback.
+        """
         evidence_logs = [logs_map[lid] for lid in incident.evidence_log_ids if lid in logs_map]
         if not evidence_logs:
             incident.probable_root_cause = "Insufficient evidence collected (Abstention)."
@@ -26,8 +60,8 @@ class GroundedReasoner:
             incident.recommended_action = "Expand log collection window and check upstream services."
             return incident
 
-        # Try LLM if available
-        if self.gemini_api_key or self.openai_api_key:
+        # Attempt LLM reasoning if provider key is configured
+        if self.has_llm_provider:
             try:
                 explanation = self._explain_with_llm(incident, evidence_logs)
                 if explanation:
@@ -38,10 +72,83 @@ class GroundedReasoner:
                     incident.confidence = float(explanation.get("confidence", incident.confidence))
                     return incident
             except Exception as e:
-                logger.warning(f"LLM API reasoning failed or timed out: {e}. Falling back to deterministic engine.")
+                logger.warning(f"LLM API reasoning failed ({e}). Falling back to deterministic engine.")
 
-        # Built-in High-Accuracy Grounded Inference Engine
+        # Built-in High-Accuracy Grounded Inference Engine (Deterministic Fallback)
         return self._explain_deterministic(incident, evidence_logs)
+
+    def _explain_with_llm(self, incident: IncidentReport, evidence_logs: List[NormalizedLog]) -> Optional[Dict[str, Any]]:
+        """Call active LLM provider (Claude -> OpenAI -> Gemini) for structured root cause."""
+        formatted_logs = "\n".join(
+            f"Line {l.id} [{l.timestamp}] [{l.level}] {l.service}: {l.message}"
+            for l in evidence_logs[:25]  # Cap to most informative 25 lines
+        )
+
+        if self.anthropic_api_key:
+            return self._call_anthropic_incident(formatted_logs)
+        elif self.openai_api_key:
+            return self._call_openai_incident(formatted_logs)
+        elif self.gemini_api_key:
+            return self._call_gemini_incident(formatted_logs)
+        return None
+
+    def _call_anthropic_incident(self, formatted_logs: str) -> Dict[str, Any]:
+        """Invoke Anthropic Claude API for structured incident analysis."""
+        import anthropic
+        client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=self.timeout_sec)
+        system_prompt = (
+            "You are an expert Principal Site Reliability Engineer (SRE) analyzing correlated system log anomalies. "
+            "Analyze the provided log evidence and return ONLY a valid JSON object with the following fields:\n"
+            "- title: A clear, concise incident title (max 8 words)\n"
+            "- summary: 1-2 sentence executive summary of the failure sequence\n"
+            "- root_cause: Technical root cause explanation citing triggering log lines (e.g. [Line 42 @ 2026-09-12T10:00:00])\n"
+            "- recommended_action: Numbered 2-3 step immediate remediation checklist\n"
+            "- confidence: Confidence float between 0.0 and 1.0\n"
+            "Return ONLY the raw JSON object, with no markdown code fence and no surrounding commentary."
+        )
+        response = client.messages.create(
+            model=self.model if "claude" in self.model else "claude-3-5-haiku-20241022",
+            max_tokens=600,
+            system=system_prompt,
+            messages=[{"role": "user", "content": f"Correlated Incident Evidence Logs:\n{formatted_logs}"}]
+        )
+        return _extract_json(response.content[0].text)
+
+    def _call_openai_incident(self, formatted_logs: str) -> Dict[str, Any]:
+        """Invoke OpenAI Chat Completions API via httpx."""
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {self.openai_api_key}", "Content-Type": "application/json"}
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {"role": "system", "content": "You are an SRE analyzing logs. Return a JSON object with: title, summary, root_cause, recommended_action, confidence (0.0-1.0)."},
+                {"role": "user", "content": f"Evidence logs:\n{formatted_logs}"}
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.2
+        }
+        res = httpx.post(url, json=payload, headers=headers, timeout=self.timeout_sec)
+        res.raise_for_status()
+        data = res.json()
+        return _extract_json(data["choices"][0]["message"]["content"])
+
+    def _call_gemini_incident(self, formatted_logs: str) -> Dict[str, Any]:
+        """Invoke Google Gemini REST API via httpx."""
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={self.gemini_api_key}"
+        prompt = (
+            "Analyze these correlated system log lines and return ONLY a JSON object with fields: "
+            "title, summary, root_cause (citing Line numbers), recommended_action, and confidence (float 0.0-1.0).\n\n"
+            f"{formatted_logs}"
+        )
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"response_mime_type": "application/json"}
+        }
+        res = httpx.post(url, json=payload, timeout=self.timeout_sec)
+        res.raise_for_status()
+        data = res.json()
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+        return _extract_json(text)
 
     def _explain_deterministic(self, incident: IncidentReport, evidence_logs: List[NormalizedLog]) -> IncidentReport:
         """
@@ -103,6 +210,7 @@ class GroundedReasoner:
     def investigate_query(self, query: str, logs: List[NormalizedLog], embedding_index: LogEmbeddingIndex) -> Dict[str, Any]:
         """
         Interactive RAG Q&A grounded strictly on retrieved log evidence.
+        Uses Claude/LLM when available, with deterministic synthesis fallback.
         """
         top_chunks = embedding_index.search(query, top_k=3)
         if not top_chunks:
@@ -133,7 +241,22 @@ class GroundedReasoner:
                 seen_ids.add(ev["log_id"])
                 unique_evidence.append(ev)
 
-        # Grounded answer synthesis
+        # Try LLM-grounded synthesis if available
+        if self.has_llm_provider:
+            try:
+                llm_answer = self._investigate_with_llm(query, unique_evidence[:5])
+                if llm_answer:
+                    return {
+                        "query": query,
+                        "answer": llm_answer,
+                        "confidence": round(top_chunks[0][1], 2),
+                        "evidence": unique_evidence[:5],
+                        "abstained": False
+                    }
+            except Exception as e:
+                logger.warning(f"LLM Copilot investigation failed ({e}). Falling back to deterministic synthesis.")
+
+        # Grounded answer deterministic synthesis fallback
         top_ev = unique_evidence[0]
         answer_text = (
             f"Based on retrieved evidence from Line {top_ev['log_id']} (timestamp: {top_ev['timestamp']}), "
@@ -148,3 +271,29 @@ class GroundedReasoner:
             "evidence": unique_evidence[:5],
             "abstained": False
         }
+
+    def _investigate_with_llm(self, query: str, evidence: List[Dict[str, Any]]) -> Optional[str]:
+        """Generate grounded Copilot answer using Anthropic Claude or active LLM."""
+        formatted_evidence = "\n".join(
+            f"- Line {ev['log_id']} @ {ev['timestamp']} [{ev['level']}] {ev['service']}: {ev['message']}"
+            for ev in evidence
+        )
+
+        if self.anthropic_api_key:
+            import anthropic
+            client = anthropic.Anthropic(api_key=self.anthropic_api_key, timeout=self.timeout_sec)
+            system_prompt = (
+                "You are AETHER Investigation Copilot, an expert site reliability observability assistant. "
+                "Answer the user's question using strictly the provided log evidence. "
+                "Always cite exact log lines (e.g. [Line 42 @ 2026-09-12T10:00:00]). "
+                "If the evidence does not support answering the question, state that clearly and abstain from guessing."
+            )
+            user_prompt = f"User Question: {query}\n\nRetrieved Log Evidence:\n{formatted_evidence}"
+            res = client.messages.create(
+                model=self.model if "claude" in self.model else "claude-3-5-haiku-20241022",
+                max_tokens=500,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_prompt}]
+            )
+            return res.content[0].text.strip()
+        return None

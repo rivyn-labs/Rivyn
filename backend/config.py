@@ -12,8 +12,11 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # AI / Reasoning
+    anthropic_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
+    llm_model: str = "claude-3-5-haiku-20241022"
+    llm_timeout_sec: float = 12.0
     anomaly_threshold: float = 0.55
     sliding_window_sec: int = 60
     max_incident_candidates: int = 15

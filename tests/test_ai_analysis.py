@@ -35,3 +35,43 @@ def test_grounded_reasoner_qa():
     assert qa_res["confidence"] > 0.0
     assert len(qa_res["evidence"]) > 0
     assert "Line" in qa_res["answer"]
+
+def test_grounded_reasoner_extract_json():
+    from backend.ai.llm_reasoner import _extract_json
+    raw = '```json\n{"title": "Test Incident", "confidence": 0.95}\n```'
+    parsed = _extract_json(raw)
+    assert parsed["title"] == "Test Incident"
+    assert parsed["confidence"] == 0.95
+
+def test_grounded_reasoner_anthropic_mock(monkeypatch):
+    from unittest.mock import MagicMock
+    from backend.normalization.schema import IncidentReport
+    import anthropic
+    
+    fake_client = MagicMock()
+    fake_msg = MagicMock()
+    fake_msg.content = [MagicMock(text='{"title": "Claude Diagnosed Incident", "summary": "Cluster failure", "root_cause": "[Line 1 @ T0] Auth dropped", "recommended_action": "Rotate keys", "confidence": 0.98}')]
+    fake_client.messages.create.return_value = fake_msg
+
+    monkeypatch.setattr(anthropic, "Anthropic", lambda **kwargs: fake_client)
+    
+    reasoner = GroundedReasoner(anthropic_api_key="sk-ant-test-key")
+    batch = LogLoader.load_from_file("data/samples/Linux.log", max_lines=50)
+    incident = IncidentReport(
+        id="inc-test",
+        title="Initial",
+        summary="",
+        probable_root_cause="",
+        recommended_action="",
+        confidence=0.5,
+        evidence_log_ids=[batch.logs[0].id],
+        event_count=1,
+        severity="HIGH",
+        created_at="2026-09-12T10:00:00"
+    )
+    logs_map = {batch.logs[0].id: batch.logs[0]}
+    res = reasoner.explain_incident(incident, logs_map)
+    assert res.title == "Claude Diagnosed Incident"
+    assert res.confidence == 0.98
+    assert "Auth dropped" in res.probable_root_cause
+
