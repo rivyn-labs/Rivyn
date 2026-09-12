@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import tempfile
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.compute as pc
@@ -19,6 +20,9 @@ class BinaryLogEngine:
 
     ARROW_SCHEMA = pa.schema([
         ("id", pa.uint32()),
+        ("source_id", pa.string()),
+        ("source_line", pa.uint32()),
+        ("event_id", pa.string()),
         ("timestamp", pa.string()),
         ("timestamp_epoch", pa.float64()),
         ("level", pa.dictionary(pa.int8(), pa.string())),
@@ -36,8 +40,11 @@ class BinaryLogEngine:
 
     @classmethod
     def save_batch(cls, batch: LogBatch, output_dir: str = "data/binary") -> Dict[str, Any]:
-        """
-        Serializes a LogBatch to compressed binary Parquet format with dictionary encoding.
+        """Append unseen events while retaining every previously stored Parquet row.
+
+        Parquet files are immutable, so the safe single-file append operation is
+        an atomic merge into a sibling temporary file.  The old file is left
+        intact until the complete merged table has been written successfully.
         """
         os.makedirs(output_dir, exist_ok=True)
         filename = f"{batch.dataset_name}.parquet"
@@ -48,6 +55,9 @@ class BinaryLogEngine:
 
         # Build columnar arrays
         ids = [l.id for l in logs]
+        source_ids = [l.source_id for l in logs]
+        source_lines = [l.source_line for l in logs]
+        event_ids = [l.event_id or f"legacy-{l.id}" for l in logs]
         timestamps = [l.timestamp or "" for l in logs]
         epochs = [l.timestamp_epoch or 0.0 for l in logs]
         levels = [l.level for l in logs]
@@ -69,6 +79,9 @@ class BinaryLogEngine:
         table = pa.Table.from_arrays(
             [
                 pa.array(ids, type=pa.uint32()),
+                pa.array(source_ids, type=pa.string()),
+                pa.array(source_lines, type=pa.uint32()),
+                pa.array(event_ids, type=pa.string()),
                 pa.array(timestamps, type=pa.string()),
                 pa.array(epochs, type=pa.float64()),
                 pa.array(levels).dictionary_encode(),
@@ -86,8 +99,35 @@ class BinaryLogEngine:
             schema=cls.ARROW_SCHEMA
         )
 
-        # Write Parquet binary file with Snappy compression
-        pq.write_table(table, filepath, compression="snappy")
+        # Preserve old rows and drop events already committed by a prior upload.
+        if os.path.exists(filepath):
+            existing = pq.read_table(filepath)
+            if "event_id" in existing.column_names:
+                known_events = set(existing["event_id"].to_pylist())
+                if known_events:
+                    keep = [event_id not in known_events for event_id in event_ids]
+                    table = table.filter(pa.array(keep))
+            else:
+                # Backward-compatible migration for files made before event IDs.
+                existing = existing.append_column("source_id", pa.array([""] * len(existing), type=pa.string()))
+                existing = existing.append_column("source_line", pa.array([0] * len(existing), type=pa.uint32()))
+                existing = existing.append_column("event_id", pa.array([f"legacy-{i}" for i in existing["id"].to_pylist()], type=pa.string()))
+                existing = existing.select(cls.ARROW_SCHEMA.names)
+            table = pa.concat_tables([existing.cast(cls.ARROW_SCHEMA), table], promote_options="none")
+
+        # Write then atomically publish.  A failed write cannot damage the
+        # committed Parquet file.
+        fd, temp_path = tempfile.mkstemp(prefix=f".{filename}.", suffix=".tmp", dir=output_dir)
+        os.close(fd)
+        try:
+            pq.write_table(table, temp_path, compression="snappy")
+            # Verify the staged file before publishing it.  This keeps a scan
+            # failure from exposing a partially completed ingestion.
+            scan_stats = cls.scan_anomalies_vectorized(temp_path)
+            os.replace(temp_path, filepath)
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
         elapsed = time.time() - t0
 
         binary_bytes = os.path.getsize(filepath)
@@ -96,13 +136,13 @@ class BinaryLogEngine:
         return {
             "file_path": filepath,
             "filename": filename,
-            "row_count": len(logs),
+            "row_count": len(table),
             "raw_text_bytes": raw_text_bytes,
             "binary_bytes": binary_bytes,
             "compression_ratio_pct": max(0.0, compression_ratio),
             "write_time_sec": round(elapsed, 4),
             "storage_reduction_factor": f"{round(raw_text_bytes / max(1, binary_bytes), 1)}x"
-        }
+        } | scan_stats
 
     @classmethod
     def scan_anomalies_vectorized(cls, filepath: str) -> Dict[str, Any]:

@@ -1,77 +1,49 @@
 import os
-import time
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
-from typing import List, Optional
-from backend.ingestion.loader import LogLoader
-from backend.ai.anomaly_detector import HybridAnomalyDetector
-from backend.ai.incident_correlator import IncidentCorrelator
-from backend.ai.embeddings import LogEmbeddingIndex
+from typing import Optional
+from backend.ingestion.incremental import IncrementalIngestor
 from backend.ai.llm_reasoner import GroundedReasoner
-from backend.analytics.metrics import ObservabilityEvaluator
-from backend.storage.binary_engine import BinaryLogEngine
 from backend.api.state import state
 from backend.config import settings
 
 router = APIRouter(prefix="/api", tags=["Ingestion"])
+UPLOAD_LINE_LIMIT = 2_000
 
 class SampleIngestRequest(BaseModel):
     dataset: str  # hdfs, bgl, linux, openstack, or hdfs_big, etc.
     max_lines: Optional[int] = None
+    source_line_offset: int = 0
 
 class RawIngestRequest(BaseModel):
     content: str
     dataset_name: Optional[str] = "custom_raw"
+    source_id: Optional[str] = None
+    source_line_offset: int = 0
 
-def _process_and_store(batch):
-    t0 = time.time()
-    detector = HybridAnomalyDetector()
-    batch.logs = detector.detect_anomalies(batch.logs)
-
-    correlator = IncidentCorrelator()
-    incidents = correlator.correlate(batch.logs)
-
-    logs_map = {l.id: l for l in batch.logs}
-    reasoner = GroundedReasoner()
-    for i, inc in enumerate(incidents):
-        if i < 8:
-            reasoner.explain_incident(inc, logs_map)
-        else:
-            evidence_logs = [logs_map[lid] for lid in inc.evidence_log_ids if lid in logs_map]
-            if evidence_logs:
-                reasoner._explain_deterministic(inc, evidence_logs)
-
-    batch.incidents = incidents
-    batch.metrics = ObservabilityEvaluator.calculate_metrics(
-        batch.logs,
-        incidents,
-        len(batch.templates),
-        pipeline_elapsed_sec=time.time() - t0
-    )
-
-    # Build semantic embedding index
-    index = LogEmbeddingIndex(chunk_size=5)
-    index.build_index(batch.logs)
-
-    # Big Data Binary Columnar Serialization
-    bin_save_stats = BinaryLogEngine.save_batch(
-        batch, output_dir=os.path.join(settings.data_dir, "binary")
-    )
-    bin_scan_stats = BinaryLogEngine.scan_anomalies_vectorized(bin_save_stats["file_path"])
-
-    state.current_batch = batch
-    state.embedding_index = index
-    state.binary_stats = {
-        **bin_save_stats,
-        **bin_scan_stats
-    }
-    return batch
+def _read_file_slice(filepath: str, offset: int, limit: int):
+    with open(filepath, "r", encoding="utf-8", errors="ignore") as stream:
+        for _ in range(offset):
+            next(stream, None)
+        return [line.rstrip("\r\n") for _, line in zip(range(limit), stream)]
 
 @router.get("/storage/binary-stats")
 def get_binary_stats():
     if not state.binary_stats:
         return {"status": "no_binary_data"}
     return {"binary_engine": state.binary_stats}
+
+
+@router.get("/ai/status")
+def get_ai_status():
+    """Expose configuration readiness without ever exposing credentials."""
+    reasoner = GroundedReasoner()
+    return {
+        "openai_configured": bool(reasoner.openai_api_key),
+        "active_provider": "openai" if reasoner.openai_api_key else "deterministic_fallback",
+        "model": reasoner.model if reasoner.openai_api_key else None,
+        "max_incidents_per_ingestion": settings.llm_max_incidents_per_ingestion,
+    }
 
 @router.get("/datasets")
 def list_available_datasets():
@@ -121,8 +93,10 @@ def ingest_sample(req: SampleIngestRequest):
     if not os.path.exists(filepath):
         raise HTTPException(status_code=404, detail=f"Sample dataset file '{filepath}' not found.")
 
-    batch = LogLoader.load_from_file(filepath, max_lines=lines_limit, dataset_name=req.dataset)
-    _process_and_store(batch)
+    batch = IncrementalIngestor.ingest(
+        _read_file_slice(filepath, req.source_line_offset, lines_limit), req.dataset,
+        source_id=os.path.abspath(filepath), source_line_offset=req.source_line_offset,
+    )
 
     return {
         "status": "success",
@@ -137,13 +111,21 @@ def ingest_sample(req: SampleIngestRequest):
     }
 
 @router.post("/ingest/upload")
-async def ingest_upload(file: UploadFile = File(...)):
+async def ingest_upload(
+    file: UploadFile = File(...), source_id: Optional[str] = Form(None), source_line_offset: int = Form(0)
+):
     contents = await file.read()
     text = contents.decode("utf-8", errors="ignore")
     lines = text.splitlines()
+    if not lines:
+        raise HTTPException(status_code=400, detail="The uploaded file contains no log lines.")
 
-    batch = LogLoader.load_from_lines(lines[:2000], dataset_name=file.filename or "uploaded_file")
-    _process_and_store(batch)
+    dataset_name = file.filename or "uploaded_file"
+    previous_total = state.datasets.get(dataset_name).batch.total_lines if dataset_name in state.datasets else 0
+    batch = IncrementalIngestor.ingest(
+        lines[:UPLOAD_LINE_LIMIT], dataset_name,
+        source_id=source_id or dataset_name, source_line_offset=source_line_offset,
+    )
 
     return {
         "status": "success",
@@ -152,14 +134,21 @@ async def ingest_upload(file: UploadFile = File(...)):
         "total_lines": batch.total_lines,
         "anomalies_count": batch.metrics.anomalies_count,
         "incidents_count": batch.metrics.incidents_count,
-        "noise_reduction_ratio": f"{batch.metrics.noise_reduction_ratio}%"
+        "noise_reduction_ratio": f"{batch.metrics.noise_reduction_ratio}%",
+        "submitted_lines": len(lines),
+        "accepted_lines": min(len(lines), UPLOAD_LINE_LIMIT),
+        "new_lines": batch.total_lines - previous_total,
+        "truncated": len(lines) > UPLOAD_LINE_LIMIT,
     }
 
 @router.post("/ingest/raw")
 def ingest_raw(req: RawIngestRequest):
     lines = req.content.splitlines()
-    batch = LogLoader.load_from_lines(lines[:2000], dataset_name=req.dataset_name or "custom_raw")
-    _process_and_store(batch)
+    dataset_name = req.dataset_name or "custom_raw"
+    batch = IncrementalIngestor.ingest(
+        lines[:2000], dataset_name, source_id=req.source_id or dataset_name,
+        source_line_offset=req.source_line_offset,
+    )
 
     return {
         "status": "success",

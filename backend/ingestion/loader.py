@@ -1,4 +1,5 @@
 import os
+import hashlib
 from typing import List, Optional
 from backend.ingestion.detector import LogStructureDetector
 from backend.parsing.generic_parser import GenericLogParser
@@ -37,11 +38,28 @@ class LogLoader:
                     break
                 lines.append(line.rstrip("\r\n"))
 
-        return cls.load_from_lines(lines, dataset_name=dataset_name)
+        return cls.load_from_lines(lines, dataset_name=dataset_name, source_id=os.path.abspath(filepath))
 
     @classmethod
-    def load_from_lines(cls, lines: List[str], dataset_name: str = "custom_upload") -> LogBatch:
-        clean_lines = [l.strip() for l in lines if l.strip()]
+    def load_from_lines(
+        cls,
+        lines: List[str],
+        dataset_name: str = "custom_upload",
+        *,
+        source_id: Optional[str] = None,
+        source_line_offset: int = 0,
+        parser: Optional[GenericLogParser] = None,
+        dialect: Optional[str] = None,
+        start_id: int = 1,
+    ) -> LogBatch:
+        """Parse a slice without creating identities that conflict with prior slices.
+
+        The optional parser is deliberately injectable: an incremental caller keeps
+        one Drain tree per dataset, while existing one-shot callers retain their
+        original behaviour.
+        """
+        source_id = source_id or dataset_name
+        clean_lines = [(source_line_offset + idx, line.strip()) for idx, line in enumerate(lines, start=1) if line.strip()]
         if not clean_lines:
             return LogBatch(
                 dataset_name=dataset_name,
@@ -54,16 +72,18 @@ class LogLoader:
             )
 
         # 1. Structure Detection
-        detection = LogStructureDetector.detect(clean_lines[:100])
-        dialect = detection["dialect"]
+        detected_dialect = dialect or LogStructureDetector.detect([line for _, line in clean_lines[:100]])["dialect"]
 
         # 2. Parse all lines
         syslog_year = cls.DATASET_SYSLOG_YEARS.get(dataset_name.lower())
-        parser = GenericLogParser(syslog_year=syslog_year)
+        parser = parser or GenericLogParser(syslog_year=syslog_year)
         normalized_logs: List[NormalizedLog] = []
 
-        for idx, line in enumerate(clean_lines, start=1):
-            parsed = parser.parse_line(line, line_id=idx, dialect=dialect)
+        for idx, (source_line, line) in enumerate(clean_lines, start=start_id):
+            parsed = parser.parse_line(line, line_id=idx, dialect=detected_dialect)
+            parsed.source_id = source_id
+            parsed.source_line = source_line
+            parsed.event_id = hashlib.sha256(f"{source_id}\0{source_line}\0{line}".encode("utf-8")).hexdigest()
             normalized_logs.append(parsed)
 
         # 3. Collect Templates Catalog
@@ -74,7 +94,7 @@ class LogLoader:
 
         return LogBatch(
             dataset_name=dataset_name,
-            detected_format=dialect,
+            detected_format=detected_dialect,
             total_lines=len(normalized_logs),
             logs=normalized_logs,
             templates=templates_catalog,

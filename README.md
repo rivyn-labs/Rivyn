@@ -57,7 +57,11 @@
 
 ---
 
-## Definitive Benchmark Results: 7 LogHub Production Datasets (2.7M+ Lines)
+## Historical Benchmark Results: 7 LogHub Production Datasets (2.7M+ Lines)
+
+The table below is retained as the historical benchmark record in
+`data/benchmark_all_datasets.json`. It must not be presented as a fresh result
+until rerun on the current commit and hardware.
 
 Evaluated across **all 7 heterogeneous LogHub production datasets** in `data/samples/`:
 1. **Linux**: 100% complete OS syslog & auth logs (25,567 lines)
@@ -138,6 +142,35 @@ a clean-looking table.
 - **HDFS tests skip on a fresh clone.** Five tests depend on the 1.58 GB
   `HDFS.log`, which is not committed. They skip with an actionable message rather
   than failing; fetch the dataset into `data/samples/` to run them.
+
+### Current Dataset Validation Focus — Spark and BGL (2026-09-12)
+
+We are validating datasets incrementally and preserving every existing raw-data
+and benchmark artifact. The first reproducible current-commit slices are:
+
+| Dataset | Source | Slice | Dialect | Templates | Anomalies | Incidents |
+| :--- | :--- | --: | :--- | --: | --: | --: |
+| Spark | `data/samples/Spark.log` | 2,000 lines | `spark` | 37 | 249 | 18 |
+| BGL | `data/samples/BGL/BGL.log` | 2,000 lines | `bgl` | 2 | 98 | 1 |
+
+These figures validate parser selection and the current ingestion pipeline;
+they are not claims about the full datasets. Next: run labeled evaluation where
+ground truth is available, then controlled larger slices with recorded machine
+and commit metadata.
+
+### Verification Status (2026-09-12)
+
+- Upload flow: API-tested with a three-line log, empty-file rejection, and
+  duplicate-upload idempotency. Browser-smoke-tested with the same local file:
+  the UI refreshed to the three rows and displayed `Processed 0 new log lines`
+  for the expected duplicate upload; it now reports progress and readable errors.
+- LLM: a real `gpt-4o-mini` call via local `OPENAI_API_KEY` was verified against
+  a three-line incident. Credentials remain only in ignored `.env`; the app
+  calls the model for at most three changed incidents per ingest, then retains
+  deterministic evidence-linked fallback coverage.
+- Tests: ingestion and parsing suites pass (19 tests). The all-in-one end-to-end
+  suite's final large benchmark exceeds this machine's one-minute terminal
+  window, so it is deliberately recorded as incomplete rather than passed.
 
 ---
 

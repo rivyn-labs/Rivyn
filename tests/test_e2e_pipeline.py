@@ -27,6 +27,40 @@ def test_e2e_openstack_slice():
     assert data["status"] == "success"
     assert "binary_storage" in data
 
+
+def test_e2e_upload_small_log_and_duplicate_is_idempotent():
+    content = (
+        b"2024-01-01 00:00:01 ERROR api: request req-12345678 failed\n"
+        b"2024-01-01 00:00:02 INFO api: retry scheduled\n"
+        b"2024-01-01 00:00:03 ERROR api: request req-12345678 failed\n"
+    )
+    files = {"file": ("upload-e2e.log", content, "text/plain")}
+
+    first = client.post("/api/ingest/upload", files=files)
+    assert first.status_code == 200
+    first_data = first.json()
+    assert first_data["submitted_lines"] == 3
+    assert first_data["accepted_lines"] == 3
+    assert first_data["new_lines"] == 3
+    assert first_data["truncated"] is False
+
+    second = client.post("/api/ingest/upload", files=files)
+    assert second.status_code == 200
+    assert second.json()["new_lines"] == 0
+
+
+def test_e2e_upload_rejects_empty_file():
+    res = client.post("/api/ingest/upload", files={"file": ("empty.log", b"", "text/plain")})
+    assert res.status_code == 400
+    assert "no log lines" in res.json()["detail"]
+
+
+def test_e2e_ai_status_does_not_expose_a_key():
+    res = client.get("/api/ai/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert set(data) == {"openai_configured", "active_provider", "model", "max_incidents_per_ingestion"}
+
 def test_e2e_ingest_and_query():
     # Ingest linux sample
     res = client.post("/api/ingest/sample", json={"dataset": "linux", "max_lines": 150})

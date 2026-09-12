@@ -85,6 +85,7 @@ function bindEvents() {
   const btnSubmitUpload = document.getElementById("btnSubmitUpload");
 
   btnUploadModal.addEventListener("click", () => {
+    document.getElementById("uploadStatus").textContent = "";
     uploadModal.style.display = "flex";
   });
 
@@ -378,8 +379,10 @@ async function askCopilot() {
 
 async function handleFileUpload() {
   const fileInput = document.getElementById("fileInput");
+  const status = document.getElementById("uploadStatus");
+  const submit = document.getElementById("btnSubmitUpload");
   if (!fileInput.files.length) {
-    alert("Please choose a log file first.");
+    status.textContent = "Choose a log file before ingesting.";
     return;
   }
 
@@ -387,19 +390,33 @@ async function handleFileUpload() {
   const formData = new FormData();
   formData.append("file", file);
 
+  submit.disabled = true;
+  submit.textContent = "Analyzing…";
+  status.textContent = `Uploading ${file.name}…`;
   try {
     const res = await fetch("/api/ingest/upload", {
       method: "POST",
       body: formData
     });
+    const data = await res.json();
     if (res.ok) {
-      document.getElementById("uploadModal").style.display = "none";
+      const truncation = data.truncated ? ` First ${data.accepted_lines.toLocaleString()} lines analyzed.` : "";
+      // `new_lines` was introduced after the first upload API.  Fall back to
+      // `total_lines` so a rolling frontend/backend deploy cannot turn a
+      // successful ingestion into a UI error.
+      const processedLines = Number.isFinite(data.new_lines) ? data.new_lines : data.total_lines;
+      status.textContent = `Processed ${processedLines.toLocaleString()} new log lines.${truncation}`;
+      fileInput.value = "";
       await refreshDashboard();
     } else {
-      alert("Failed to ingest file.");
+      status.textContent = data.detail || "Upload failed. Check that this is a readable text log.";
     }
   } catch (err) {
+    status.textContent = "Upload failed because the server could not be reached.";
     console.error("Upload error:", err);
+  } finally {
+    submit.disabled = false;
+    submit.textContent = "Ingest & Analyze";
   }
 }
 

@@ -249,9 +249,10 @@
         <button id="btnCloseModal" class="close-btn" aria-label="Close dialog">&times;</button>
       </div>
       <p class="modal-desc">
-        Select any text or log file. The system will automatically detect the structure, parse timestamps, mine Drain templates, and run AI anomaly analysis.
+        Select any text or log file. The first 2,000 lines are analyzed in this upload; repeat uploads are de-duplicated safely by source line and content.
       </p>
       <input type="file" id="fileInput" class="file-input" accept=".log,.txt,.csv" />
+      <p id="uploadStatus" class="upload-status" role="status" aria-live="polite"></p>
       <div class="modal-actions">
         <button id="btnCancelUpload" class="btn btn-secondary">Cancel</button>
         <button id="btnSubmitUpload" class="btn">Ingest &amp; Analyze</button>

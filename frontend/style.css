@@ -1226,6 +1226,13 @@ tbody tr.row-anomaly:hover { filter: brightness(0.98); }
   font-size: 0.82rem;
 }
 
+.upload-status {
+  min-height: 1.25rem;
+  margin: calc(var(--sp-2) * -1) 0 var(--sp-4);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     gemini_api_key: Optional[str] = None
     llm_model: str = "gpt-4o-mini"
     llm_timeout_sec: float = 12.0
+    llm_max_incidents_per_ingestion: int = 3
     anomaly_threshold: float = 0.55
     sliding_window_sec: int = 60
     max_incident_candidates: int = 15
