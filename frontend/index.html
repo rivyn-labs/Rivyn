@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHER | AI-Powered Observability (MHP Hackathon)</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header>
+    <div class="logo-area">
+      <span class="brand-badge">MHP Case 1</span>
+      <div>
+        <div class="logo-title">AETHER Observability</div>
+        <div class="logo-subtitle">Evidence-First AI Log Intelligence & Root Cause Engine</div>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <label for="datasetSelect" style="font-size: 0.8rem; color: var(--text-secondary);">Dataset:</label>
+      <select id="datasetSelect" class="select-dataset">
+        <option value="hdfs">HDFS (Distributed File System)</option>
+        <option value="linux">Linux (SSH Auth Failures)</option>
+        <option value="bgl">BGL (Supercomputer Alert)</option>
+        <option value="openstack">OpenStack (Cloud Infra)</option>
+      </select>
+
+      <button id="btnUploadModal" class="btn btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Log
+      </button>
+
+      <button id="btnRunBenchmark" class="btn btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Benchmark All
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI Banner -->
+  <section class="kpi-banner">
+    <div class="kpi-card highlight">
+      <div class="kpi-title">Noise Reduction Ratio</div>
+      <div class="kpi-value" id="kpiNoiseReduction">--%</div>
+      <div class="kpi-subtext">Alert fatigue reduction</div>
+    </div>
+
+    <div class="kpi-card danger">
+      <div class="kpi-title">Correlated Incidents</div>
+      <div class="kpi-value" id="kpiIncidents">--</div>
+      <div class="kpi-subtext" id="kpiAnomaliesSub">from -- raw anomalies</div>
+    </div>
+
+    <div class="kpi-card success">
+      <div class="kpi-title">Triage Velocity</div>
+      <div class="kpi-value" id="kpiSpeedup">--x</div>
+      <div class="kpi-subtext">Faster time-to-root-cause</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-title">Detected Schema</div>
+      <div class="kpi-value" id="kpiDialect" style="font-size: 1.4rem;">--</div>
+      <div class="kpi-subtext" id="kpiLogsCount">-- logs ingested</div>
+    </div>
+  </section>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- AI Investigation Copilot Panel -->
+    <section class="copilot-card">
+      <div class="copilot-header">
+        <div class="copilot-icon">AI</div>
+        <div>
+          <h3 style="font-size: 1.1rem; color: #fff;">Grounded Investigation Copilot</h3>
+          <p style="font-size: 0.8rem; color: var(--text-secondary);">Ask natural-language questions grounded strictly on retrieved log evidence</p>
+        </div>
+      </div>
+
+      <div class="copilot-input-box">
+        <input type="text" id="copilotInput" class="copilot-input" placeholder="e.g. What caused the packet responder failure?" />
+        <button id="btnAskCopilot" class="btn">
+          <span>Investigate</span>
+        </button>
+      </div>
+
+      <div class="copilot-pills">
+        <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center;">Suggested:</span>
+        <button class="pill-btn" data-query="Why did the packet responder terminate?">Why did packet responder terminate?</button>
+        <button class="pill-btn" data-query="Are there authentication failures or brute force attacks?">Check authentication failures</button>
+        <button class="pill-btn" data-query="Show me memory or hardware register anomalies">Inspect hardware register anomalies</button>
+      </div>
+
+      <div id="copilotAnswerBox" class="copilot-answer-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan);">EVIDENCE-GROUNDED CONCLUSION</span>
+          <span id="copilotConfidence" class="confidence-chip">Confidence: --%</span>
+        </div>
+        <p id="copilotAnswerText" style="font-size: 0.9rem; color: #f1f5f9; line-height: 1.6;"></p>
+        
+        <div style="margin-top: 0.85rem;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem;">CITED LOG EVIDENCE:</div>
+          <div id="copilotEvidenceList" class="evidence-tags"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Incident Board -->
+    <section>
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-crimson)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Correlated Incidents
+        </h2>
+        <span id="incidentCountBadge" style="font-size: 0.8rem; color: var(--text-muted);">-- incidents detected</span>
+      </div>
+
+      <div id="incidentGrid" class="incident-grid">
+        <!-- Dynamically populated by app.js -->
+      </div>
+    </section>
+
+    <!-- Temporal Density & Anomaly Timeline -->
+    <section class="timeline-card">
+      <div class="section-header" style="margin-bottom: 0.5rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary);">Temporal Event Density & Anomaly Spikes</h3>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Red = Anomalies | Grey = Baseline Traffic</span>
+      </div>
+      <div id="timelineBars" class="timeline-bars">
+        <!-- Bars dynamically rendered -->
+      </div>
+    </section>
+
+    <!-- Log Explorer -->
+    <section class="explorer-card">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Log Stream & Drain Templates
+        </h2>
+        <span id="logTableCount" style="font-size: 0.8rem; color: var(--text-muted);">Showing 0 logs</span>
+      </div>
+
+      <div class="filters-bar">
+        <input type="text" id="logSearch" class="search-input" placeholder="Filter by keyword, service, entity (e.g. blk_38865)..." />
+        
+        <select id="severityFilter" class="select-dataset">
+          <option value="">All Severities</option>
+          <option value="CRITICAL">CRITICAL / FATAL</option>
+          <option value="ERROR">ERROR</option>
+          <option value="WARN">WARN</option>
+          <option value="INFO">INFO</option>
+        </select>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="anomaliesOnlyCheck">
+          <span>Anomalies Only</span>
+        </label>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="logTable">
+          <thead>
+            <tr>
+              <th style="width: 60px;">#</th>
+              <th style="width: 150px;">Timestamp</th>
+              <th style="width: 80px;">Level</th>
+              <th style="width: 140px;">Service</th>
+              <th>Message</th>
+              <th style="width: 100px;">Template ID</th>
+              <th style="width: 90px;">Anomaly</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody">
+            <!-- Rows dynamically inserted -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color: #fff;">Upload Custom Log Dataset</h3>
+        <button id="btnCloseModal" class="close-btn">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Select any text or log file. The system will automatically detect the structure, parse timestamps, mine Drain templates, and run AI anomaly analysis.
+      </p>
+      <input type="file" id="fileInput" accept=".log,.txt,.csv" style="margin-bottom: 1.5rem; width: 100%;" />
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button id="btnCancelUpload" class="btn btn-secondary">Cancel</button>
+        <button id="btnSubmitUpload" class="btn">Ingest & Analyze</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
