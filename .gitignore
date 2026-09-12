@@ -60,6 +60,7 @@ node_logs/
 data/samples/node_logs/
 data/samples/*.zip
 data/samples/*.tar.gz
+data/binary/
 
 # OS generated
 Thumbs.db
