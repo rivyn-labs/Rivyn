@@ -56,6 +56,10 @@ data/samples_expanded/
 temp_*/
 data/loghub/**/raw/*_full.log
 data/samples/HDFS.log
+node_logs/
+data/samples/node_logs/
+data/samples/*.zip
+data/samples/*.tar.gz
 
 # OS generated
 Thumbs.db

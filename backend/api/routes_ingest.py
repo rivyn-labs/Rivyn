@@ -68,32 +68,28 @@ def get_binary_stats():
 @router.get("/datasets")
 def list_available_datasets():
     datasets = [
-        {"id": "openstack_full", "name": "OpenStack Full Dataset (207,820 Lines - Complete LogHub)", "type": "Cloud Infrastructure", "scale": "Complete LogHub (100%)"},
-        {"id": "linux_full", "name": "Linux Full Dataset (25,567 Lines - Complete LogHub)", "type": "Operating System", "scale": "Complete LogHub (100%)"},
-        {"id": "hdfs", "name": "HDFS (2,000 Lines Slice)", "type": "Distributed File System", "scale": "Slice"},
-        {"id": "linux", "name": "Linux (2,000 Lines Slice)", "type": "Operating System", "scale": "Slice"},
-        {"id": "bgl", "name": "BGL (2,000 Lines Slice)", "type": "HPC Supercomputer", "scale": "Slice"},
-        {"id": "openstack", "name": "OpenStack (2,000 Lines Slice)", "type": "Cloud Infrastructure", "scale": "Slice"},
-        {"id": "hdfs_big", "name": "HDFS Enterprise Scale (25k - Parquet Engine)", "type": "Distributed File System", "scale": "Big Data"},
-        {"id": "bgl_big", "name": "BGL Enterprise Scale (25k - Parquet Engine)", "type": "HPC Supercomputer", "scale": "Big Data"},
+        {"id": "openstack", "name": "OpenStack Cloud (207,820 Lines - Complete LogHub)", "type": "Cloud Infrastructure", "scale": "Complete LogHub (100%)", "file": "OpenStack.log"},
+        {"id": "linux", "name": "Linux Syslog (25,567 Lines - Complete LogHub)", "type": "Operating System", "scale": "Complete LogHub (100%)", "file": "Linux.log"},
+        {"id": "hdfs", "name": "HDFS Distributed FS (1.58 GB / 11M Lines - LogHub)", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
     ]
     return {"datasets": datasets}
 
 @router.post("/ingest/sample")
 def ingest_sample(req: SampleIngestRequest):
-    if req.dataset == "openstack_full":
+    ds = req.dataset.lower()
+    if ds in ("openstack", "openstack_full"):
         filepath = "data/samples/OpenStack.log"
-        lines_limit = req.max_lines or 250000
-    elif req.dataset == "linux_full":
+        lines_limit = req.max_lines or 207820
+    elif ds in ("linux", "linux_full"):
         filepath = "data/samples/Linux.log"
-        lines_limit = req.max_lines or 30000
-    elif req.dataset.endswith("_big"):
-        base_name = req.dataset.replace("_big", "")
-        filepath = f"data/samples_expanded/{base_name}_expanded.log"
-        lines_limit = req.max_lines or 25000
+        lines_limit = req.max_lines or 25567
+    elif ds in ("hdfs", "hdfs_big", "hdfs_full"):
+        filepath = "data/samples/HDFS.log"
+        lines_limit = req.max_lines or 100000
     else:
-        filepath = f"data/samples/{req.dataset}_sample.log"
-        lines_limit = req.max_lines or 2000
+        # Check direct path or filename
+        filepath = f"data/samples/{req.dataset}.log"
+        lines_limit = req.max_lines or 5000
 
     if not os.path.exists(filepath):
         raise HTTPException(status_code=404, detail=f"Sample dataset file '{filepath}' not found.")

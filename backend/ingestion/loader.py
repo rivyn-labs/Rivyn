@@ -19,8 +19,11 @@ class LogLoader:
             dataset_name = os.path.splitext(os.path.basename(filepath))[0]
 
         with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-            lines = [f.readline() for _ in range(max_lines)]
-            lines = [l for l in lines if l]
+            if max_lines is not None:
+                lines = [f.readline() for _ in range(max_lines)]
+                lines = [l for l in lines if l]
+            else:
+                lines = [l.rstrip("\r\n") for l in f]
 
         return cls.load_from_lines(lines, dataset_name=dataset_name)
 

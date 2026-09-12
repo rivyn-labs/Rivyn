@@ -34,26 +34,22 @@ class DrainParser:
         self.root = Node()
         self.clusters: Dict[str, LogCluster] = {}
 
-    # Regular expressions to mask dynamic variables before tree traversal
-    MASKS = [
-        (re.compile(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?::\d+)?\b'), '<IP>'),
-        (re.compile(r'\bblk_-?\d+\b'), '<BLOCK>'),
-        (re.compile(r'\breq-[0-9a-fA-F-]{8,}\b'), '<REQ>'),
-        (re.compile(r'\b0x[0-9a-fA-F]+\b'), '<HEX>'),
-        (re.compile(r'\b[0-9a-fA-F]{8,}\b'), '<HASH>'),
-        (re.compile(r'(/[\w\-.]+)+/?'), '<PATH>'),
-        (re.compile(r'\b\d+\b'), '<NUM>'),
-    ]
+    COMBINED_MASK = re.compile(
+        r'(?P<IP>\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?::\d+)?\b)|'
+        r'(?P<BLOCK>\bblk_-?\d+\b)|'
+        r'(?P<REQ>\breq-[0-9a-fA-F-]{8,}\b)|'
+        r'(?P<HEX>\b0x[0-9a-fA-F]+\b)|'
+        r'(?P<HASH>\b[0-9a-fA-F]{8,}\b)|'
+        r'(?P<PATH>/[\w\-./]+)|'
+        r'(?P<NUM>\b\d+\b)'
+    )
 
     def preprocess(self, content: str) -> Tuple[List[str], List[str]]:
-        cleaned = content
         extracted_params = []
-        for regex, token in self.MASKS:
-            matches = regex.findall(cleaned)
-            for m in matches:
-                if isinstance(m, str) and m:
-                    extracted_params.append(m)
-            cleaned = regex.sub(token, cleaned)
+        def _repl(m):
+            extracted_params.append(m.group(0))
+            return f'<{m.lastgroup}>'
+        cleaned = self.COMBINED_MASK.sub(_repl, content)
         tokens = cleaned.strip().split()
         return tokens, extracted_params
 

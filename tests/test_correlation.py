@@ -5,7 +5,7 @@ from backend.ai.incident_correlator import IncidentCorrelator
 from backend.analytics.metrics import ObservabilityEvaluator
 
 def test_incident_correlation():
-    batch = LogLoader.load_from_file("data/samples/linux_sample.log", max_lines=150)
+    batch = LogLoader.load_from_file("data/samples/Linux.log", max_lines=150)
     detector = HybridAnomalyDetector()
     batch.logs = detector.detect_anomalies(batch.logs)
 
@@ -19,7 +19,7 @@ def test_incident_correlation():
     assert first_inc.confidence >= 0.5
 
 def test_metrics_evaluation():
-    batch = LogLoader.load_from_file("data/samples/hdfs_sample.log", max_lines=150)
+    batch = LogLoader.load_from_file("data/samples/HDFS.log", max_lines=150)
     batch.logs = HybridAnomalyDetector().detect_anomalies(batch.logs)
     incidents = IncidentCorrelator().correlate(batch.logs)
 

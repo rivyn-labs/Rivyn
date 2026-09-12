@@ -6,7 +6,7 @@ from backend.ai.embeddings import LogEmbeddingIndex
 from backend.ai.llm_reasoner import GroundedReasoner
 
 def test_anomaly_detector():
-    batch = LogLoader.load_from_file("data/samples/hdfs_sample.log", max_lines=150)
+    batch = LogLoader.load_from_file("data/samples/Linux.log", max_lines=150)
     detector = HybridAnomalyDetector()
     analyzed = detector.detect_anomalies(batch.logs)
     anomalies = [l for l in analyzed if l.is_anomaly]
@@ -15,7 +15,7 @@ def test_anomaly_detector():
     assert max(l.anomaly_score for l in anomalies) >= 0.70
 
 def test_embeddings_and_retrieval():
-    batch = LogLoader.load_from_file("data/samples/hdfs_sample.log", max_lines=100)
+    batch = LogLoader.load_from_file("data/samples/HDFS.log", max_lines=100)
     index = LogEmbeddingIndex(chunk_size=4)
     index.build_index(batch.logs)
     
@@ -26,7 +26,7 @@ def test_embeddings_and_retrieval():
     assert "PacketResponder" in chunk.text
 
 def test_grounded_reasoner_qa():
-    batch = LogLoader.load_from_file("data/samples/hdfs_sample.log", max_lines=100)
+    batch = LogLoader.load_from_file("data/samples/HDFS.log", max_lines=100)
     index = LogEmbeddingIndex(chunk_size=4)
     index.build_index(batch.logs)
     

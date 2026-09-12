@@ -38,20 +38,9 @@
     <div class="header-controls">
       <label for="datasetSelect" class="header-label">Dataset</label>
       <select id="datasetSelect" class="select-dataset">
-        <optgroup label="Full Complete LogHub Datasets (100% Real LogHub Data)">
-          <option value="openstack_full" selected>OpenStack Full Dataset (207,820 Lines - Complete LogHub)</option>
-          <option value="linux_full">Linux Full Dataset (25,567 Lines - Complete LogHub)</option>
-        </optgroup>
-        <optgroup label="Standard LogHub Slices (~2,000 Lines)">
-          <option value="hdfs">HDFS Distributed FS (2,000 Lines)</option>
-          <option value="linux">Linux SSH Auth (2,000 Lines)</option>
-          <option value="bgl">BGL Supercomputer (2,000 Lines)</option>
-          <option value="openstack">OpenStack Cloud (2,000 Lines)</option>
-        </optgroup>
-        <optgroup label="Big Data Scale (25,000 Lines - Parquet Binary Engine)">
-          <option value="hdfs_big">HDFS Big Data (25k - Parquet)</option>
-          <option value="bgl_big">BGL Big Data (25k - Parquet)</option>
-        </optgroup>
+        <option value="openstack" selected>OpenStack Cloud (207,820 Lines - Complete LogHub)</option>
+        <option value="linux">Linux Syslog (25,567 Lines - Complete LogHub)</option>
+        <option value="hdfs">HDFS Distributed FS (1.58 GB / 11M Lines - LogHub)</option>
       </select>
 
       <button id="btnUploadModal" class="btn btn-secondary">

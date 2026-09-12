@@ -5,7 +5,7 @@ from backend.ai.anomaly_detector import HybridAnomalyDetector
 from backend.storage.binary_engine import BinaryLogEngine
 
 def test_binary_engine_save_and_scan():
-    batch = LogLoader.load_from_file("data/samples/hdfs_sample.log", max_lines=500)
+    batch = LogLoader.load_from_file("data/samples/HDFS.log", max_lines=500)
     batch.logs = HybridAnomalyDetector().detect_anomalies(batch.logs)
 
     # Save to binary

@@ -14,10 +14,9 @@ class BenchmarkRunner:
     """
 
     SAMPLE_FILES = {
-        "hdfs": "data/samples/hdfs_sample.log",
-        "bgl": "data/samples/bgl_sample.log",
-        "linux": "data/samples/linux_sample.log",
-        "openstack": "data/samples/openstack_sample.log"
+        "linux": "data/samples/Linux.log",
+        "openstack": "data/samples/OpenStack.log",
+        "hdfs": "data/samples/HDFS.log"
     }
 
     @classmethod

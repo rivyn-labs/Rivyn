@@ -21,10 +21,10 @@ def test_structure_detector_syslog():
     assert res["dialect"] == "syslog"
 
 def test_log_loader_samples():
-    for name in ["hdfs", "linux", "bgl", "openstack"]:
-        path = f"data/samples/{name}_sample.log"
-        if os.path.exists(path):
-            batch = LogLoader.load_from_file(path, max_lines=50)
-            assert batch.total_lines > 0
-            assert len(batch.logs) == batch.total_lines
-            assert len(batch.templates) > 0
+    for name in ["Linux.log", "OpenStack.log", "HDFS.log"]:
+        path = f"data/samples/{name}"
+        assert os.path.exists(path), f"Sample file {path} must exist"
+        batch = LogLoader.load_from_file(path, max_lines=50)
+        assert batch.total_lines > 0
+        assert len(batch.logs) == batch.total_lines
+        assert len(batch.templates) > 0
