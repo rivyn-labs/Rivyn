@@ -192,7 +192,8 @@ async def ingest_upload(
             detail=f"No log lines exist at or after source line {source_line_offset + 1}.",
         )
 
-    dataset_name = file.filename or "uploaded_file"
+    raw_filename = os.path.basename(file.filename or "uploaded_file")
+    dataset_name = raw_filename
     job_id = str(uuid.uuid4())
     source = source_id or dataset_name
     state.ingestion_jobs[job_id] = {
@@ -200,7 +201,7 @@ async def ingest_upload(
         "status": "queued",
         "stage": "Queued for analysis",
         "progress": 0,
-        "filename": file.filename or "uploaded_file",
+        "filename": raw_filename,
         "bytes": len(contents),
         "lines_detected": len(lines),
         "lines_to_process": len(selected_lines),

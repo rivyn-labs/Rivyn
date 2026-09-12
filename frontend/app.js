@@ -428,6 +428,12 @@ async function handleFileUpload() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "Failed to start analysis.");
+    if (!data.job_id) {
+      await refreshDashboard();
+      resetUploadUi();
+      document.getElementById("uploadModal").style.display = "none";
+      return;
+    }
     activeUploadJobId = data.job_id;
     document.getElementById("uploadEstimatedTime").textContent = formatDuration(data.estimated_seconds);
     document.getElementById("uploadRemainingTime").textContent = formatDuration(data.estimated_seconds);
@@ -488,14 +494,16 @@ async function pollUploadJob() {
 
     if (job.status === "complete") {
       clearInterval(uploadTimerId);
-      const lines = Number(job.lines_processed || 0).toLocaleString();
       await refreshDashboard();
-      document.getElementById("uploadStatus").textContent = job.duplicate
-        ? "No new log lines were added because this file was already ingested."
-        : `Processed ${lines} log lines.`;
       activeUploadJobId = null;
-      resetUploadUi();
-      document.getElementById("uploadModal").style.display = "none";
+      if (job.duplicate) {
+        showUploadFailure("Notice: This log file was already ingested. Existing records are preserved.");
+        document.getElementById("btnSubmitUpload").textContent = "Ingest & Analyze";
+        document.getElementById("btnCancelUpload").textContent = "Close";
+      } else {
+        resetUploadUi();
+        document.getElementById("uploadModal").style.display = "none";
+      }
       return;
     }
     if (job.status === "failed") throw new Error(job.error || "Analysis failed.");
