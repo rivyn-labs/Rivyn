@@ -62,25 +62,18 @@ def test_e2e_upload_rejects_empty_file():
     assert "no log lines" in res.json()["detail"]
 
 
-def test_e2e_upload_source_offset_selects_the_next_chunk():
+def test_e2e_upload_has_no_line_limit():
     content = b"\n".join(
         f"2024-01-01 00:00:{index % 60:02d} INFO api: event {index}".encode()
         for index in range(1, 2003)
     )
-    files = {"file": ("offset-e2e.log", content, "text/plain")}
-
-    first = client.post("/api/ingest/upload", files=files)
-    assert first.status_code == 200
-    assert first.json()["accepted_lines"] == 2000
-    assert first.json()["truncated"] is True
-
-    second = client.post("/api/ingest/upload", files=files, data={"source_line_offset": "2000"})
-    assert second.status_code == 200
-    data = second.json()
-    assert data["source_line_start"] == 2001
+    response = client.post("/api/ingest/upload", files={"file": ("unlimited-e2e.log", content, "text/plain")})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["accepted_lines"] == 2002
+    assert data["new_lines"] == 2002
+    assert data["source_line_start"] == 1
     assert data["source_line_end"] == 2002
-    assert data["accepted_lines"] == 2
-    assert data["new_lines"] == 2
     assert data["truncated"] is False
 
 

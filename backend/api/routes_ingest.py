@@ -8,7 +8,6 @@ from backend.api.state import state
 from backend.config import settings
 
 router = APIRouter(prefix="/api", tags=["Ingestion"])
-UPLOAD_LINE_LIMIT = 2_000
 
 class SampleIngestRequest(BaseModel):
     dataset: str  # hdfs, bgl, linux, openstack, or hdfs_big, etc.
@@ -120,7 +119,7 @@ async def ingest_upload(
     if not lines:
         raise HTTPException(status_code=400, detail="The uploaded file contains no log lines.")
 
-    selected_lines = lines[source_line_offset:source_line_offset + UPLOAD_LINE_LIMIT]
+    selected_lines = lines[source_line_offset:]
     if not selected_lines:
         raise HTTPException(
             status_code=400,
@@ -151,7 +150,7 @@ async def ingest_upload(
         "next_source_line": source_line_offset + accepted_lines + 1,
         "new_lines": new_lines,
         "duplicate": accepted_lines > 0 and new_lines == 0,
-        "truncated": source_line_offset + accepted_lines < len(lines),
+        "truncated": False,
     }
 
 @router.post("/ingest/raw")
@@ -159,7 +158,7 @@ def ingest_raw(req: RawIngestRequest):
     lines = req.content.splitlines()
     dataset_name = req.dataset_name or "custom_raw"
     batch = IncrementalIngestor.ingest(
-        lines[:2000], dataset_name, source_id=req.source_id or dataset_name,
+        lines, dataset_name, source_id=req.source_id or dataset_name,
         source_line_offset=req.source_line_offset,
     )
 
