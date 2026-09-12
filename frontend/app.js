@@ -394,8 +394,8 @@ async function handleFileUpload() {
   }
 
   const file = fileInput.files[0];
-  if (file.size > 10 * 1024 * 1024) {
-    showUploadFailure("This file is larger than the 10 MiB interactive-demo limit.");
+  if (file.size > 20 * 1024 * 1024) {
+    showUploadFailure("This file is larger than the 20 MiB interactive-demo limit.");
     return;
   }
   const formData = new FormData();

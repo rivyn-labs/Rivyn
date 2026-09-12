@@ -17,7 +17,7 @@ from backend.config import settings
 
 router = APIRouter(prefix="/api", tags=["Ingestion"])
 
-MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 MAX_UPLOAD_LINES = 200_000
 DEFAULT_LINES_PER_SECOND = 750.0
 MIN_ESTIMATE_SECONDS = 5.0
@@ -207,7 +207,7 @@ async def ingest_upload(file: UploadFile = File(...), background_tasks: Backgrou
     if len(contents) > MAX_UPLOAD_BYTES:
         raise HTTPException(
             status_code=413,
-            detail="Upload exceeds the 10 MiB demo limit. Use a smaller slice for this in-memory demo."
+            detail="Upload exceeds the 20 MiB demo limit. Use a smaller slice for this in-memory demo."
         )
     text = contents.decode("utf-8", errors="ignore")
     lines = text.splitlines()
