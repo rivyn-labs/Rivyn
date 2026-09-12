@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from backend.normalization.schema import IncidentReport, NormalizedLog
 from backend.ai.embeddings import LogEmbeddingIndex
 
