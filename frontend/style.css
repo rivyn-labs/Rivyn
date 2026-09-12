@@ -719,6 +719,7 @@ header {
 
 table {
   width: 100%;
+  min-width: 880px;
   border-collapse: collapse;
   font-size: 0.8rem;
 }
@@ -747,6 +748,15 @@ tbody td {
   font-family: var(--font-mono);
   font-size: 0.76rem;
   line-height: 1.5;
+}
+
+/* Keep log records readable on narrow screens. The wrapper supplies horizontal
+   scrolling instead of collapsing message, template, and score columns into
+   one-character-wide cells. */
+#logTable td:nth-child(5) {
+  min-width: 280px;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
 }
 
 tbody tr:last-child td { border-bottom: none; }
@@ -1258,4 +1268,36 @@ tbody tr.row-anomaly:hover { filter: brightness(0.98); }
   .logo-subtitle { display: none; }
   .signal-hero { align-items: flex-start; flex-direction: column; gap: var(--sp-5); border-radius: 20px; }
   .signal-status { width: 100%; }
+  .table-wrapper { overflow-x: visible; }
+  #logTable,
+  #logTable tbody,
+  #logTable tr,
+  #logTable td {
+    display: block;
+    width: 100%;
+  }
+  #logTable { min-width: 0; }
+  #logTable thead { display: none; }
+  #logTable tr {
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 1px solid var(--border-color);
+  }
+  #logTable tbody tr:last-child { border-bottom: none; }
+  #logTable td {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: var(--sp-2);
+    padding: 3px 0;
+    border: none;
+  }
+  #logTable td::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  #logTable td:nth-child(5) { min-width: 0; }
 }

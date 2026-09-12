@@ -165,6 +165,8 @@ and commit metadata.
   Browser-smoke-tested with the local three-line file: the dashboard refreshed,
   the configured LLM request returned successfully, and the dialog closed after
   analysis. Errors and duplicate-upload feedback remain visible in the dialog.
+  On narrow screens the log explorer switches to labeled compact records so
+  message text does not collapse into unreadable columns.
 - LLM: a real `gpt-4o-mini` call via local `OPENAI_API_KEY` was verified against
   a three-line incident. Credentials remain only in ignored `.env`; the app
   calls the model for at most three changed incidents per ingest, then retains

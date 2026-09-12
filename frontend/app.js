@@ -317,13 +317,13 @@ async function fetchLogs() {
       const lvlClass = `lvl-${l.level}`;
 
       row.innerHTML = `
-        <td class="log-id">#${l.id}</td>
-        <td class="log-ts">${escapeHtml(timeStr)}</td>
-        <td><span class="badge-level ${lvlClass}">${l.level}</span></td>
-        <td class="log-service">${escapeHtml(l.service || '-')}</td>
-        <td style="word-break: break-all;">${escapeHtml(l.message)}</td>
-        <td><span class="tag">${l.template_id}</span></td>
-        <td>
+        <td class="log-id" data-label="Log">#${l.id}</td>
+        <td class="log-ts" data-label="Timestamp">${escapeHtml(timeStr)}</td>
+        <td data-label="Level"><span class="badge-level ${lvlClass}">${l.level}</span></td>
+        <td class="log-service" data-label="Service">${escapeHtml(l.service || '-')}</td>
+        <td data-label="Message">${escapeHtml(l.message)}</td>
+        <td data-label="Template"><span class="tag">${l.template_id}</span></td>
+        <td data-label="Anomaly">
           <span class="log-score ${l.is_anomaly ? 'is-anomaly' : 'is-normal'}">
             ${l.anomaly_score.toFixed(2)}
           </span>
