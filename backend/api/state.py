@@ -21,5 +21,7 @@ class GlobalState:
         self.embedding_index: Optional[LogEmbeddingIndex] = None
         self.binary_stats: Optional[Dict[str, Any]] = None
         self.datasets: Dict[str, DatasetState] = {}
+        self.ingestion_jobs: Dict[str, Dict[str, Any]] = {}
+        self.observed_lines_per_second: Optional[float] = None
 
 state = GlobalState()

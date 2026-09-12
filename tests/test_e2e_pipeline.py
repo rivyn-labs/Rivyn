@@ -39,21 +39,21 @@ def test_e2e_upload_small_log_and_duplicate_is_idempotent():
     first = client.post("/api/ingest/upload", files=files)
     assert first.status_code == 200
     first_data = first.json()
+    assert first_data["status"] == "accepted"
     assert first_data["submitted_lines"] == 3
-    assert first_data["accepted_lines"] == 3
-    assert first_data["new_lines"] == 3
-    assert first_data["duplicate"] is False
-    assert first_data["source_line_start"] == 1
-    assert first_data["source_line_end"] == 3
-    assert first_data["next_source_line"] == 4
     assert first_data["truncated"] is False
+    first_job = client.get(f"/api/ingest/jobs/{first_data['job_id']}")
+    assert first_job.status_code == 200
+    assert first_job.json()["status"] == "complete"
+    assert first_job.json()["new_lines"] == 3
+    assert first_job.json()["duplicate"] is False
 
     second = client.post("/api/ingest/upload", files=files)
     assert second.status_code == 200
-    duplicate_data = second.json()
-    assert duplicate_data["new_lines"] == 0
-    assert duplicate_data["duplicate"] is True
-    assert duplicate_data["next_source_line"] == 4
+    duplicate_job = client.get(f"/api/ingest/jobs/{second.json()['job_id']}")
+    assert duplicate_job.status_code == 200
+    assert duplicate_job.json()["new_lines"] == 0
+    assert duplicate_job.json()["duplicate"] is True
 
 
 def test_e2e_upload_rejects_empty_file():
@@ -70,11 +70,13 @@ def test_e2e_upload_has_no_line_limit():
     response = client.post("/api/ingest/upload", files={"file": ("unlimited-e2e.log", content, "text/plain")})
     assert response.status_code == 200
     data = response.json()
-    assert data["accepted_lines"] == 2002
-    assert data["new_lines"] == 2002
-    assert data["source_line_start"] == 1
-    assert data["source_line_end"] == 2002
+    assert data["status"] == "accepted"
+    assert data["lines_to_process"] == 2002
     assert data["truncated"] is False
+    job = client.get(f"/api/ingest/jobs/{data['job_id']}")
+    assert job.status_code == 200
+    assert job.json()["status"] == "complete"
+    assert job.json()["new_lines"] == 2002
 
 
 def test_e2e_ai_status_does_not_expose_a_key():

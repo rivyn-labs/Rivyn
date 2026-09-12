@@ -9,6 +9,8 @@
 
 > **Rivyn** is an AI log intelligence platform designed for the **MHP Hackathon ("Take the Money and Run")**. It transforms multi-gigabyte unformatted raw system logs into structured columnar binary storage (**Apache Parquet**), uncovers rare behavioral shifts using **Multi-Tier AI Anomaly Detection**, and clusters alert floods into root-cause incident tickets, measured at **88-97% alert noise reduction** on the committed LogHub datasets.
 
+For the interactive demo, uploads are processed in full and show live progress plus an estimated duration. Processing time and memory use scale with the selected file; the supplied benchmark data remains preserved in the repository.
+
 ---
 
 ## Architecture: Parse & Store Once, Detect & Query at Binary Speed

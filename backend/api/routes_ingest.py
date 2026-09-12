@@ -1,13 +1,20 @@
 import os
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+import time
+import uuid
+from typing import List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
-from typing import Optional
 from backend.ingestion.incremental import IncrementalIngestor
 from backend.ai.llm_reasoner import GroundedReasoner
 from backend.api.state import state
 from backend.config import settings
 
 router = APIRouter(prefix="/api", tags=["Ingestion"])
+
+DEFAULT_LINES_PER_SECOND = 750.0
+MIN_ESTIMATE_SECONDS = 5.0
+PROCESSING_OVERHEAD_SECONDS = 4.0
 
 class SampleIngestRequest(BaseModel):
     dataset: str  # hdfs, bgl, linux, openstack, or hdfs_big, etc.
@@ -25,6 +32,61 @@ def _read_file_slice(filepath: str, offset: int, limit: int):
         for _ in range(offset):
             next(stream, None)
         return [line.rstrip("\r\n") for _, line in zip(range(limit), stream)]
+
+
+def _estimate_processing_seconds(line_count: int) -> float:
+    lines_per_second = state.observed_lines_per_second or DEFAULT_LINES_PER_SECOND
+    return round(max(MIN_ESTIMATE_SECONDS, (line_count / lines_per_second) + PROCESSING_OVERHEAD_SECONDS), 1)
+
+
+def _run_upload_job(
+    job_id: str,
+    lines: List[str],
+    filename: str,
+    source_id: str,
+    source_line_offset: int,
+    byte_count: int,
+) -> None:
+    job = state.ingestion_jobs[job_id]
+    job["status"] = "processing"
+    job["started_at"] = time.time()
+    job["stage"] = "Parsing log lines"
+    job["progress"] = 10
+
+    try:
+        job["stage"] = "Analyzing and correlating incidents"
+        job["progress"] = 25
+        previous_total = state.datasets.get(filename).batch.total_lines if filename in state.datasets else 0
+        batch = IncrementalIngestor.ingest(
+            lines,
+            filename,
+            source_id=source_id,
+            source_line_offset=source_line_offset,
+        )
+        new_lines = batch.total_lines - previous_total
+        elapsed = max(0.01, time.time() - job["started_at"])
+        lines_per_second = batch.total_lines / elapsed
+        state.observed_lines_per_second = lines_per_second
+        job.update({
+            "status": "complete",
+            "stage": "Ready",
+            "progress": 100,
+            "completed_at": time.time(),
+            "elapsed_seconds": round(elapsed, 2),
+            "lines_per_second": round(lines_per_second, 1),
+            "bytes_per_second": round(byte_count / elapsed, 1),
+            "lines_processed": len(lines),
+            "new_lines": new_lines,
+            "duplicate": bool(lines) and new_lines == 0,
+            "dataset": batch.dataset_name,
+        })
+    except Exception as exc:
+        job.update({
+            "status": "failed",
+            "stage": "Analysis failed",
+            "error": str(exc),
+            "completed_at": time.time(),
+        })
 
 @router.get("/storage/binary-stats")
 def get_binary_stats():
@@ -51,9 +113,9 @@ def list_available_datasets():
         {"id": "linux", "name": "Linux", "type": "Operating System", "scale": "Complete LogHub", "file": "Linux.log"},
         {"id": "zookeeper", "name": "ZooKeeper", "type": "Distributed Coordination", "scale": "Complete LogHub", "file": "Zookeeper.log"},
         {"id": "hadoop", "name": "Hadoop", "type": "Big Data Compute", "scale": "Complete LogHub", "file": "Hadoop.log"},
-        {"id": "spark", "name": "Apache Spark (500,000 Lines Milestone)", "type": "Distributed Analytics", "scale": "Large Scale (500k)", "file": "Spark.log"},
-        {"id": "bgl", "name": "BlueGene/L Supercomputer (4.75M Lines - HPC)", "type": "Supercomputing / HPC", "scale": "Supercomputing Scale", "file": "BGL.log"},
-        {"id": "hdfs", "name": "HDFS Distributed FS (1.58 GB / 11M Lines)", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
+        {"id": "spark", "name": "Spark", "type": "Distributed Analytics", "scale": "Large Scale", "file": "Spark.log"},
+        {"id": "bgl", "name": "BlueGene/L", "type": "Supercomputing / HPC", "scale": "Supercomputing Scale", "file": "BGL.log"},
+        {"id": "hdfs", "name": "HDFS", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
     ]
     return {"datasets": datasets}
 
@@ -111,7 +173,10 @@ def ingest_sample(req: SampleIngestRequest):
 
 @router.post("/ingest/upload")
 async def ingest_upload(
-    file: UploadFile = File(...), source_id: Optional[str] = Form(None), source_line_offset: int = Form(0, ge=0)
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    source_id: Optional[str] = Form(None),
+    source_line_offset: int = Form(0, ge=0),
 ):
     contents = await file.read()
     text = contents.decode("utf-8", errors="ignore")
@@ -127,31 +192,56 @@ async def ingest_upload(
         )
 
     dataset_name = file.filename or "uploaded_file"
-    previous_total = state.datasets.get(dataset_name).batch.total_lines if dataset_name in state.datasets else 0
-    accepted_lines = len(selected_lines)
-    batch = IncrementalIngestor.ingest(
-        selected_lines, dataset_name,
-        source_id=source_id or dataset_name, source_line_offset=source_line_offset,
-    )
-    new_lines = batch.total_lines - previous_total
-
-    return {
-        "status": "success",
-        "dataset": batch.dataset_name,
-        "detected_format": batch.detected_format,
-        "total_lines": batch.total_lines,
-        "anomalies_count": batch.metrics.anomalies_count,
-        "incidents_count": batch.metrics.incidents_count,
-        "noise_reduction_ratio": f"{batch.metrics.noise_reduction_ratio}%",
-        "submitted_lines": len(lines),
-        "accepted_lines": accepted_lines,
+    job_id = str(uuid.uuid4())
+    source = source_id or dataset_name
+    state.ingestion_jobs[job_id] = {
+        "id": job_id,
+        "status": "queued",
+        "stage": "Queued for analysis",
+        "progress": 0,
+        "filename": file.filename or "uploaded_file",
+        "bytes": len(contents),
+        "lines_detected": len(lines),
+        "lines_to_process": len(selected_lines),
         "source_line_start": source_line_offset + 1,
-        "source_line_end": source_line_offset + accepted_lines,
-        "next_source_line": source_line_offset + accepted_lines + 1,
-        "new_lines": new_lines,
-        "duplicate": accepted_lines > 0 and new_lines == 0,
+        "source_line_end": source_line_offset + len(selected_lines),
+        "created_at": time.time(),
+        "estimated_seconds": _estimate_processing_seconds(len(selected_lines)),
+    }
+    background_tasks.add_task(
+        _run_upload_job,
+        job_id,
+        selected_lines,
+        dataset_name,
+        source,
+        source_line_offset,
+        len(contents),
+    )
+    return {
+        "status": "accepted",
+        "job_id": job_id,
+        "estimated_seconds": state.ingestion_jobs[job_id]["estimated_seconds"],
+        "lines_to_process": len(selected_lines),
+        "submitted_lines": len(lines),
         "truncated": False,
     }
+
+
+@router.get("/ingest/jobs/{job_id}")
+def get_ingest_job(job_id: str):
+    job = state.ingestion_jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Upload job not found.")
+
+    snapshot = dict(job)
+    started_at = snapshot.get("started_at") or snapshot["created_at"]
+    elapsed = snapshot.get("elapsed_seconds") or round(max(0.0, time.time() - started_at), 2)
+    snapshot["elapsed_seconds"] = elapsed
+    if snapshot["status"] in {"queued", "processing"}:
+        snapshot["remaining_seconds"] = round(max(0.0, snapshot["estimated_seconds"] - elapsed), 1)
+    else:
+        snapshot["remaining_seconds"] = 0.0
+    return snapshot
 
 @router.post("/ingest/raw")
 def ingest_raw(req: RawIngestRequest):
