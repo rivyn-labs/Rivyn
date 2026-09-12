@@ -9,12 +9,13 @@ from backend.ai.incident_correlator import IncidentCorrelator
 from backend.ai.embeddings import LogEmbeddingIndex
 from backend.ai.llm_reasoner import GroundedReasoner
 from backend.analytics.metrics import ObservabilityEvaluator
+from backend.storage.binary_engine import BinaryLogEngine
 from backend.api.state import state
 
 router = APIRouter(prefix="/api", tags=["Ingestion"])
 
 class SampleIngestRequest(BaseModel):
-    dataset: str  # hdfs, bgl, linux, openstack
+    dataset: str  # hdfs, bgl, linux, openstack, or hdfs_big, etc.
     max_lines: Optional[int] = 500
 
 class RawIngestRequest(BaseModel):
@@ -46,28 +47,52 @@ def _process_and_store(batch):
     index = LogEmbeddingIndex(chunk_size=5)
     index.build_index(batch.logs)
 
+    # Big Data Binary Columnar Serialization
+    bin_save_stats = BinaryLogEngine.save_batch(batch, output_dir="data/binary")
+    bin_scan_stats = BinaryLogEngine.scan_anomalies_vectorized(bin_save_stats["file_path"])
+
     state.current_batch = batch
     state.embedding_index = index
+    state.binary_stats = {
+        **bin_save_stats,
+        **bin_scan_stats
+    }
     return batch
+
+@router.get("/storage/binary-stats")
+def get_binary_stats():
+    if not state.binary_stats:
+        return {"status": "no_binary_data"}
+    return {"binary_engine": state.binary_stats}
 
 @router.get("/datasets")
 def list_available_datasets():
-    samples_dir = "data/samples"
     datasets = [
-        {"id": "hdfs", "name": "HDFS (Hadoop Distributed File System)", "type": "Distributed File System", "labeled": True},
-        {"id": "linux", "name": "Linux Syslog (SSH Auth Failures)", "type": "Operating System", "labeled": False},
-        {"id": "bgl", "name": "BGL (BlueGene/L Supercomputer)", "type": "HPC Supercomputer", "labeled": True},
-        {"id": "openstack", "name": "OpenStack (Cloud VM Orchestration)", "type": "Cloud Infrastructure", "labeled": True},
+        {"id": "hdfs", "name": "HDFS (2,000 Lines Standard)", "type": "Distributed File System", "scale": "Standard"},
+        {"id": "hdfs_big", "name": "HDFS Big Data (25,000 Lines - Binary Engine)", "type": "Distributed File System", "scale": "Big Data"},
+        {"id": "linux", "name": "Linux Syslog (2,000 Lines Standard)", "type": "Operating System", "scale": "Standard"},
+        {"id": "linux_big", "name": "Linux Big Data (25,000 Lines - Binary Engine)", "type": "Operating System", "scale": "Big Data"},
+        {"id": "bgl", "name": "BGL (2,000 Lines Standard)", "type": "HPC Supercomputer", "scale": "Standard"},
+        {"id": "bgl_big", "name": "BGL Big Data (25,000 Lines - Binary Engine)", "type": "HPC Supercomputer", "scale": "Big Data"},
+        {"id": "openstack", "name": "OpenStack (2,000 Lines Standard)", "type": "Cloud Infrastructure", "scale": "Standard"},
+        {"id": "openstack_big", "name": "OpenStack Big Data (25,000 Lines - Binary Engine)", "type": "Cloud Infrastructure", "scale": "Big Data"},
     ]
     return {"datasets": datasets}
 
 @router.post("/ingest/sample")
 def ingest_sample(req: SampleIngestRequest):
-    filepath = f"data/samples/{req.dataset}_sample.log"
-    if not os.path.exists(filepath):
-        raise HTTPException(status_code=404, detail=f"Sample dataset '{req.dataset}' not found.")
+    if req.dataset.endswith("_big"):
+        base_name = req.dataset.replace("_big", "")
+        filepath = f"data/samples_expanded/{base_name}_expanded.log"
+        lines_limit = req.max_lines if (req.max_lines and req.max_lines > 500) else 25000
+    else:
+        filepath = f"data/samples/{req.dataset}_sample.log"
+        lines_limit = req.max_lines or 500
 
-    batch = LogLoader.load_from_file(filepath, max_lines=req.max_lines, dataset_name=req.dataset)
+    if not os.path.exists(filepath):
+        raise HTTPException(status_code=404, detail=f"Sample dataset file '{filepath}' not found.")
+
+    batch = LogLoader.load_from_file(filepath, max_lines=lines_limit, dataset_name=req.dataset)
     _process_and_store(batch)
 
     return {
@@ -78,7 +103,8 @@ def ingest_sample(req: SampleIngestRequest):
         "anomalies_count": batch.metrics.anomalies_count,
         "incidents_count": batch.metrics.incidents_count,
         "noise_reduction_ratio": f"{batch.metrics.noise_reduction_ratio}%",
-        "triage_speedup": f"{batch.metrics.triage_speedup_ratio}x"
+        "triage_speedup": f"{batch.metrics.triage_speedup_ratio}x",
+        "binary_storage": state.binary_stats
     }
 
 @router.post("/ingest/upload")

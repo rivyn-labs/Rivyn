@@ -21,10 +21,18 @@
     <div class="header-controls">
       <label for="datasetSelect" style="font-size: 0.8rem; color: var(--text-secondary);">Dataset:</label>
       <select id="datasetSelect" class="select-dataset">
-        <option value="hdfs">HDFS (Distributed File System)</option>
-        <option value="linux">Linux (SSH Auth Failures)</option>
-        <option value="bgl">BGL (Supercomputer Alert)</option>
-        <option value="openstack">OpenStack (Cloud Infra)</option>
+        <optgroup label="Standard LogHub (2,000 Lines)">
+          <option value="hdfs">HDFS Distributed FS</option>
+          <option value="linux">Linux SSH Auth Failures</option>
+          <option value="bgl">BGL Supercomputer</option>
+          <option value="openstack">OpenStack Cloud</option>
+        </optgroup>
+        <optgroup label="Big Data Scale (25,000 Lines - Binary Engine)">
+          <option value="hdfs_big">HDFS Big Data (25k - Parquet)</option>
+          <option value="linux_big">Linux Big Data (25k - Parquet)</option>
+          <option value="bgl_big">BGL Big Data (25k - Parquet)</option>
+          <option value="openstack_big">OpenStack Big Data (25k - Parquet)</option>
+        </optgroup>
       </select>
 
       <button id="btnUploadModal" class="btn btn-secondary">
@@ -40,7 +48,7 @@
   </header>
 
   <!-- KPI Banner -->
-  <section class="kpi-banner">
+  <section class="kpi-banner" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
     <div class="kpi-card highlight">
       <div class="kpi-title">Noise Reduction Ratio</div>
       <div class="kpi-value" id="kpiNoiseReduction">--%</div>
@@ -63,6 +71,12 @@
       <div class="kpi-title">Detected Schema</div>
       <div class="kpi-value" id="kpiDialect" style="font-size: 1.4rem;">--</div>
       <div class="kpi-subtext" id="kpiLogsCount">-- logs ingested</div>
+    </div>
+
+    <div class="kpi-card highlight">
+      <div class="kpi-title">Binary Columnar Storage</div>
+      <div class="kpi-value" id="kpiBinaryFormat" style="font-size: 1.25rem;">Parquet</div>
+      <div class="kpi-subtext" id="kpiBinarySub">Zero-copy mmap scan</div>
     </div>
   </section>
 

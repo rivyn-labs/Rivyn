@@ -72,10 +72,11 @@ async function refreshDashboard() {
 
 async function switchDataset(datasetName) {
   try {
+    const linesCount = datasetName.endsWith("_big") ? 25000 : 400;
     const res = await fetch("/api/ingest/sample", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dataset: datasetName, max_lines: 400 })
+      body: JSON.stringify({ dataset: datasetName, max_lines: linesCount })
     });
     if (res.ok) {
       await refreshDashboard();
@@ -96,6 +97,15 @@ async function fetchOverview() {
       document.getElementById("kpiSpeedup").textContent = `${data.metrics.triage_speedup_ratio}x`;
       document.getElementById("kpiDialect").textContent = (data.detected_format || "generic").toUpperCase();
       document.getElementById("kpiLogsCount").textContent = `${data.total_logs} logs parsed (${data.templates_count} templates)`;
+    }
+
+    // Fetch Binary Storage Engine Stats
+    const binRes = await fetch("/api/storage/binary-stats");
+    const binData = await binRes.json();
+    if (binData.binary_engine) {
+      const b = binData.binary_engine;
+      document.getElementById("kpiBinaryFormat").textContent = `${b.storage_reduction_factor} Smaller`;
+      document.getElementById("kpiBinarySub").textContent = `${b.compression_ratio_pct}% compressed (${b.scan_latency_ms}ms scan)`;
     }
   } catch (err) {
     console.error("Error fetching overview:", err);
