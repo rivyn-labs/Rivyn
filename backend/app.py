@@ -1,6 +1,11 @@
 import os
+import sys
 import logging
 from contextlib import asynccontextmanager
+
+# Ensure project root is in sys.path for direct execution
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
