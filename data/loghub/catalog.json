@@ -1,0 +1,645 @@
+{
+  "hpc": {
+    "key": "hpc",
+    "name": "HPC",
+    "domain": "supercomputers",
+    "description": "High Performance Computing Linux cluster job scheduling and node logs",
+    "files": {
+      "raw_2k": {
+        "path": "supercomputers/hpc/raw/hpc_2k.log",
+        "size": 151178,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "supercomputers/hpc/ground_truth/hpc_2k.log_structured.csv",
+        "size": 217818,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "supercomputers/hpc/ground_truth/hpc_2k.log_templates.csv",
+        "size": 2032,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "supercomputers/hpc/ground_truth/hpc_2k.log_structured_corrected.csv",
+        "size": 217413,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "supercomputers/hpc/ground_truth/hpc_2k.log_templates_corrected.csv",
+        "size": 2008,
+        "success": true
+      },
+      "readme": {
+        "path": "supercomputers/hpc/README.md",
+        "size": 1466,
+        "success": true
+      }
+    }
+  },
+  "thunderbird": {
+    "key": "thunderbird",
+    "name": "Thunderbird",
+    "domain": "supercomputers",
+    "description": "Thunderbird supercomputer system logs with alert and failure categorizations",
+    "files": {
+      "raw_2k": {
+        "path": "supercomputers/thunderbird/raw/thunderbird_2k.log",
+        "size": 325192,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "supercomputers/thunderbird/ground_truth/thunderbird_2k.log_structured.csv",
+        "size": 446333,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "supercomputers/thunderbird/ground_truth/thunderbird_2k.log_templates.csv",
+        "size": 6756,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "supercomputers/thunderbird/ground_truth/thunderbird_2k.log_structured_corrected.csv",
+        "size": 438861,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "supercomputers/thunderbird/ground_truth/thunderbird_2k.log_templates_corrected.csv",
+        "size": 6503,
+        "success": true
+      },
+      "readme": {
+        "path": "supercomputers/thunderbird/README.md",
+        "size": 1251,
+        "success": true
+      }
+    }
+  },
+  "spark": {
+    "key": "spark",
+    "name": "Spark",
+    "domain": "distributed_systems",
+    "description": "Apache Spark distributed in-memory data processing framework logs",
+    "files": {
+      "raw_2k": {
+        "path": "distributed_systems/spark/raw/spark_2k.log",
+        "size": 196268,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "distributed_systems/spark/ground_truth/spark_2k.log_structured.csv",
+        "size": 305002,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "distributed_systems/spark/ground_truth/spark_2k.log_templates.csv",
+        "size": 1951,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "distributed_systems/spark/ground_truth/spark_2k.log_structured_corrected.csv",
+        "size": 303194,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "distributed_systems/spark/ground_truth/spark_2k.log_templates_corrected.csv",
+        "size": 1927,
+        "success": true
+      },
+      "readme": {
+        "path": "distributed_systems/spark/README.md",
+        "size": 1138,
+        "success": true
+      }
+    }
+  },
+  "hadoop": {
+    "key": "hadoop",
+    "name": "Hadoop",
+    "domain": "distributed_systems",
+    "description": "Hadoop MapReduce cluster task execution and job history logs",
+    "files": {
+      "raw_2k": {
+        "path": "distributed_systems/hadoop/raw/hadoop_2k.log",
+        "size": 384948,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "distributed_systems/hadoop/ground_truth/hadoop_2k.log_structured.csv",
+        "size": 541144,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "distributed_systems/hadoop/ground_truth/hadoop_2k.log_templates.csv",
+        "size": 7989,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "distributed_systems/hadoop/ground_truth/hadoop_2k.log_structured_corrected.csv",
+        "size": 525855,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "distributed_systems/hadoop/ground_truth/hadoop_2k.log_templates_corrected.csv",
+        "size": 7524,
+        "success": true
+      },
+      "readme": {
+        "path": "distributed_systems/hadoop/README.md",
+        "size": 2256,
+        "success": true
+      }
+    }
+  },
+  "bgl": {
+    "key": "bgl",
+    "name": "BGL",
+    "domain": "supercomputers",
+    "description": "BlueGene/L supercomputer hardware alerts, parity errors, and node failures",
+    "files": {
+      "raw_2k": {
+        "path": "supercomputers/bgl/raw/bgl_2k.log",
+        "size": 317150,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "supercomputers/bgl/ground_truth/bgl_2k.log_structured.csv",
+        "size": 425129,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "supercomputers/bgl/ground_truth/bgl_2k.log_templates.csv",
+        "size": 8663,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "supercomputers/bgl/ground_truth/bgl_2k.log_structured_corrected.csv",
+        "size": 424733,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "supercomputers/bgl/ground_truth/bgl_2k.log_templates_corrected.csv",
+        "size": 8624,
+        "success": true
+      },
+      "extra_templates": {
+        "path": "supercomputers/bgl/ground_truth/bgl_templates.csv",
+        "size": 30515,
+        "success": true
+      },
+      "readme": {
+        "path": "supercomputers/bgl/README.md",
+        "size": 1352,
+        "success": true
+      }
+    }
+  },
+  "zookeeper": {
+    "key": "zookeeper",
+    "name": "Zookeeper",
+    "domain": "distributed_systems",
+    "description": "Apache ZooKeeper coordination service leader election and follower sync logs",
+    "files": {
+      "raw_2k": {
+        "path": "distributed_systems/zookeeper/raw/zookeeper_2k.log",
+        "size": 279891,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "distributed_systems/zookeeper/ground_truth/zookeeper_2k.log_structured.csv",
+        "size": 372360,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "distributed_systems/zookeeper/ground_truth/zookeeper_2k.log_templates.csv",
+        "size": 3038,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "distributed_systems/zookeeper/ground_truth/zookeeper_2k.log_structured_corrected.csv",
+        "size": 371646,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "distributed_systems/zookeeper/ground_truth/zookeeper_2k.log_templates_corrected.csv",
+        "size": 3025,
+        "success": true
+      },
+      "readme": {
+        "path": "distributed_systems/zookeeper/README.md",
+        "size": 851,
+        "success": true
+      }
+    }
+  },
+  "healthapp": {
+    "key": "healthapp",
+    "name": "HealthApp",
+    "domain": "mobile_systems",
+    "description": "Mobile health application step counting, sensor sync, and GPS logs",
+    "files": {
+      "raw_2k": {
+        "path": "mobile_systems/healthapp/raw/healthapp_2k.log",
+        "size": 187456,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "mobile_systems/healthapp/ground_truth/healthapp_2k.log_structured.csv",
+        "size": 283128,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "mobile_systems/healthapp/ground_truth/healthapp_2k.log_templates.csv",
+        "size": 3734,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "mobile_systems/healthapp/ground_truth/healthapp_2k.log_structured_corrected.csv",
+        "size": 282943,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "mobile_systems/healthapp/ground_truth/healthapp_2k.log_templates_corrected.csv",
+        "size": 3686,
+        "success": true
+      },
+      "readme": {
+        "path": "mobile_systems/healthapp/README.md",
+        "size": 619,
+        "success": true
+      }
+    }
+  },
+  "linux": {
+    "key": "linux",
+    "name": "Linux",
+    "domain": "operating_systems",
+    "description": "Linux operating system syslog, auth, PAM, and sshd security logs",
+    "files": {
+      "raw_2k": {
+        "path": "operating_systems/linux/raw/linux_2k.log",
+        "size": 216485,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "operating_systems/linux/ground_truth/linux_2k.log_structured.csv",
+        "size": 327804,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "operating_systems/linux/ground_truth/linux_2k.log_templates.csv",
+        "size": 5469,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "operating_systems/linux/ground_truth/linux_2k.log_structured_corrected.csv",
+        "size": 332630,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "operating_systems/linux/ground_truth/linux_2k.log_templates_corrected.csv",
+        "size": 5329,
+        "success": true
+      },
+      "readme": {
+        "path": "operating_systems/linux/README.md",
+        "size": 723,
+        "success": true
+      },
+      "raw_full": {
+        "path": "operating_systems/linux/raw/linux_full.log",
+        "size": 2349686,
+        "success": true
+      }
+    }
+  },
+  "apache": {
+    "key": "apache",
+    "name": "Apache",
+    "domain": "server_applications",
+    "description": "Apache HTTP web server access errors, rewrite engine, and notice logs",
+    "files": {
+      "raw_2k": {
+        "path": "server_applications/apache/raw/apache_2k.log",
+        "size": 171239,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "server_applications/apache/ground_truth/apache_2k.log_structured.csv",
+        "size": 258805,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "server_applications/apache/ground_truth/apache_2k.log_templates.csv",
+        "size": 287,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "server_applications/apache/ground_truth/apache_2k.log_structured_corrected.csv",
+        "size": 258805,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "server_applications/apache/ground_truth/apache_2k.log_templates_corrected.csv",
+        "size": 287,
+        "success": true
+      },
+      "readme": {
+        "path": "server_applications/apache/README.md",
+        "size": 925,
+        "success": true
+      }
+    }
+  },
+  "proxifier": {
+    "key": "proxifier",
+    "name": "Proxifier",
+    "domain": "server_applications",
+    "description": "Proxifier network client TCP/UDP routing, proxy tunnel, and DNS logs",
+    "files": {
+      "raw_2k": {
+        "path": "server_applications/proxifier/raw/proxifier_2k.log",
+        "size": 238961,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "server_applications/proxifier/ground_truth/proxifier_2k.log_structured.csv",
+        "size": 358523,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "server_applications/proxifier/ground_truth/proxifier_2k.log_templates.csv",
+        "size": 692,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "server_applications/proxifier/ground_truth/proxifier_2k.log_structured_corrected.csv",
+        "size": 337689,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "server_applications/proxifier/ground_truth/proxifier_2k.log_templates_corrected.csv",
+        "size": 670,
+        "success": true
+      },
+      "readme": {
+        "path": "server_applications/proxifier/README.md",
+        "size": 743,
+        "success": true
+      }
+    }
+  },
+  "openssh": {
+    "key": "openssh",
+    "name": "OpenSSH",
+    "domain": "server_applications",
+    "description": "OpenSSH daemon remote authentication attempts, handshakes, and terminations",
+    "files": {
+      "raw_2k": {
+        "path": "server_applications/openssh/raw/openssh_2k.log",
+        "size": 225216,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "server_applications/openssh/ground_truth/openssh_2k.log_structured.csv",
+        "size": 357677,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "server_applications/openssh/ground_truth/openssh_2k.log_templates.csv",
+        "size": 1937,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "server_applications/openssh/ground_truth/openssh_2k.log_structured_corrected.csv",
+        "size": 357667,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "server_applications/openssh/ground_truth/openssh_2k.log_templates_corrected.csv",
+        "size": 1861,
+        "success": true
+      },
+      "readme": {
+        "path": "server_applications/openssh/README.md",
+        "size": 645,
+        "success": true
+      }
+    }
+  },
+  "mac": {
+    "key": "mac",
+    "name": "Mac",
+    "domain": "operating_systems",
+    "description": "Apple macOS operating system subsystem and application crash logs",
+    "files": {
+      "raw_2k": {
+        "path": "operating_systems/mac/raw/mac_2k.log",
+        "size": 319414,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "operating_systems/mac/ground_truth/mac_2k.log_structured.csv",
+        "size": 502573,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "operating_systems/mac/ground_truth/mac_2k.log_templates.csv",
+        "size": 36369,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "operating_systems/mac/ground_truth/mac_2k.log_structured_corrected.csv",
+        "size": 495252,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "operating_systems/mac/ground_truth/mac_2k.log_templates_corrected.csv",
+        "size": 34970,
+        "success": true
+      },
+      "readme": {
+        "path": "operating_systems/mac/README.md",
+        "size": 567,
+        "success": true
+      },
+      "raw_full": {
+        "path": "operating_systems/mac/raw/mac_full.log",
+        "size": 16879552,
+        "success": true
+      }
+    }
+  },
+  "openstack": {
+    "key": "openstack",
+    "name": "OpenStack",
+    "domain": "distributed_systems",
+    "description": "OpenStack cloud infrastructure Nova, Keystone, Neutron service logs",
+    "files": {
+      "raw_2k": {
+        "path": "distributed_systems/openstack/raw/openstack_2k.log",
+        "size": 595119,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "distributed_systems/openstack/ground_truth/openstack_2k.log_structured.csv",
+        "size": 719703,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "distributed_systems/openstack/ground_truth/openstack_2k.log_templates.csv",
+        "size": 2718,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "distributed_systems/openstack/ground_truth/openstack_2k.log_structured_corrected.csv",
+        "size": 714871,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "distributed_systems/openstack/ground_truth/openstack_2k.log_templates_corrected.csv",
+        "size": 2670,
+        "success": true
+      },
+      "readme": {
+        "path": "distributed_systems/openstack/README.md",
+        "size": 1305,
+        "success": true
+      },
+      "anomaly_labels": {
+        "path": "distributed_systems/openstack/ground_truth/anomaly_labels.txt",
+        "size": 243,
+        "success": true
+      },
+      "raw_full": {
+        "path": "distributed_systems/openstack/raw/openstack_full.log",
+        "size": 61442082,
+        "success": true
+      }
+    }
+  },
+  "windows": {
+    "key": "windows",
+    "name": "Windows",
+    "domain": "operating_systems",
+    "description": "Microsoft Windows system and security event log entries",
+    "files": {
+      "raw_2k": {
+        "path": "operating_systems/windows/raw/windows_2k.log",
+        "size": 285433,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "operating_systems/windows/ground_truth/windows_2k.log_structured.csv",
+        "size": 404249,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "operating_systems/windows/ground_truth/windows_2k.log_templates.csv",
+        "size": 3290,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "operating_systems/windows/ground_truth/windows_2k.log_structured_corrected.csv",
+        "size": 0,
+        "success": false
+      },
+      "corrected_templates": {
+        "path": "operating_systems/windows/ground_truth/windows_2k.log_templates_corrected.csv",
+        "size": 0,
+        "success": false
+      },
+      "readme": {
+        "path": "operating_systems/windows/README.md",
+        "size": 1269,
+        "success": true
+      }
+    }
+  },
+  "android": {
+    "key": "android",
+    "name": "Android",
+    "domain": "mobile_systems",
+    "description": "Android mobile framework ActivityManager and system server logs",
+    "files": {
+      "raw_2k": {
+        "path": "mobile_systems/android/raw/android_2k.log",
+        "size": 279076,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "mobile_systems/android/ground_truth/android_2k.log_structured.csv",
+        "size": 450975,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "mobile_systems/android/ground_truth/android_2k.log_templates.csv",
+        "size": 10768,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "mobile_systems/android/ground_truth/android_2k.log_structured_corrected.csv",
+        "size": 0,
+        "success": false
+      },
+      "corrected_templates": {
+        "path": "mobile_systems/android/ground_truth/android_2k.log_templates_corrected.csv",
+        "size": 0,
+        "success": false
+      },
+      "readme": {
+        "path": "mobile_systems/android/README.md",
+        "size": 2119,
+        "success": true
+      }
+    }
+  },
+  "hdfs": {
+    "key": "hdfs",
+    "name": "HDFS",
+    "domain": "distributed_systems",
+    "description": "Hadoop Distributed File System block replication and termination logs",
+    "files": {
+      "raw_2k": {
+        "path": "distributed_systems/hdfs/raw/hdfs_2k.log",
+        "size": 287848,
+        "success": true
+      },
+      "structured_2k": {
+        "path": "distributed_systems/hdfs/ground_truth/hdfs_2k.log_structured.csv",
+        "size": 414635,
+        "success": true
+      },
+      "templates_2k": {
+        "path": "distributed_systems/hdfs/ground_truth/hdfs_2k.log_templates.csv",
+        "size": 837,
+        "success": true
+      },
+      "corrected_structured": {
+        "path": "distributed_systems/hdfs/ground_truth/hdfs_2k.log_structured_corrected.csv",
+        "size": 398842,
+        "success": true
+      },
+      "corrected_templates": {
+        "path": "distributed_systems/hdfs/ground_truth/hdfs_2k.log_templates_corrected.csv",
+        "size": 753,
+        "success": true
+      },
+      "extra_templates": {
+        "path": "distributed_systems/hdfs/ground_truth/hdfs_templates.csv",
+        "size": 1646,
+        "success": true
+      },
+      "readme": {
+        "path": "distributed_systems/hdfs/README.md",
+        "size": 4575,
+        "success": true
+      },
+      "anomaly_labels": {
+        "path": "distributed_systems/hdfs/ground_truth/anomaly_label.csv",
+        "size": 18062492,
+        "success": true
+      }
+    }
+  }
+}

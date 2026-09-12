@@ -53,6 +53,7 @@ htmlcov/
 data/raw/
 data/samples_expanded/
 !data/samples/
+temp_*/
 
 # OS generated
 Thumbs.db

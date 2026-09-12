@@ -1,25 +1,72 @@
-# LogHub Benchmark Datasets
+# AETHER Log Data Repository
 
-This directory contains real-world system logs from the [logpai/loghub](https://github.com/logpai/loghub) benchmark collection, maintained by the Chinese University of Hong Kong (CUHK) and freely accessible for AI-driven log analytics research.
+This directory contains benchmark and production system logs organized for the AETHER Observability Platform.
 
-## Datasets Overview
+---
 
-| Dataset | System Type | Characteristics | Key Entities | Labeled |
-| :--- | :--- | :--- | :--- | :---: |
-| **HDFS** | Distributed File System | Block generation, replication, termination | `blk_<id>`, IP addresses | Yes |
-| **BGL** | BlueGene/L Supercomputer | Hardware alerts, core dumps, I/O errors | Component node IDs, severity | Yes |
-| **Linux** | Operating System | SSH authentication failures, PAM errors | IP addresses, user names, ports | No |
-| **OpenStack**| Cloud Infrastructure | VM lifecycle, Nova/Neutron/Keystone events | Request IDs (`req-...`), Tenant IDs | Yes |
+## Directory Organization
+
+```
+data/
+├── loghub/              # Complete, systematically categorized collection of all 16 LogHub datasets
+│   ├── README.md        # Master catalog matrix, taxonomy, schema documentation, and API usage
+│   ├── catalog.json     # Machine-readable metadata and verification records
+│   ├── distributed_systems/  (HDFS, Hadoop, Spark, ZooKeeper, OpenStack)
+│   ├── supercomputers/       (BGL, HPC, Thunderbird)
+│   ├── operating_systems/    (Linux, Mac, Windows)
+│   ├── mobile_systems/       (Android, HealthApp)
+│   └── server_applications/  (Apache, OpenSSH, Proxifier)
+│
+├── samples/             # Fast-bootstrapping slices used by unit tests and quick demo runs
+│   ├── hdfs_sample.log
+│   ├── bgl_sample.log
+│   ├── linux_sample.log
+│   ├── openstack_sample.log
+│   ├── Linux.log        # Full Linux syslog (25,567 lines)
+│   ├── OpenStack.log    # Full OpenStack infrastructure log (207,820 lines)
+│   └── anomaly_labels.txt
+│
+├── samples_expanded/    # Scaled realistic workloads (25,000+ to 100,000+ lines)
+│   └── hdfs_100k.log
+│
+└── binary/              # Optimized zero-copy Apache Parquet columnar binary caches
+    ├── hdfs.parquet
+    ├── linux_full.parquet
+    └── openstack_full.parquet
+```
+
+---
+
+## Working with Datasets in Python
+
+Use the `DatasetRegistry` module for unified, programmatic access:
+
+```python
+from backend.data.dataset_registry import DatasetRegistry
+
+# Load any of the 16 datasets with ease:
+bgl = DatasetRegistry.get("bgl")
+raw_lines = bgl.read_raw(max_lines=200)
+ground_truth_df = bgl.read_structured()
+```
+
+---
+
+## Refreshing or Downloading Datasets
+
+To download and organize all 16 datasets concurrently:
+```bash
+python scripts/download_datasets.py --all --workers 8
+```
+
+For quick local bootstrapping of the 4 primary hackathon demo files:
+```bash
+python scripts/download_datasets.py --quick
+```
+
+---
 
 ## MHP Hackathon Compliance Notice
 
-> **Log Sanitization & Isolation Notice**:
-> LogHub notes that raw production logs may contain unsanitized IP addresses or internal hostnames. In compliance with the MHP Hackathon Governance requirements, all logs ingested into this platform pass through our automated **DataGovernor Redaction Engine** (`backend/normalization/redactor.py`) before feature extraction or AI reasoning.
-
-## Fetching Additional Datasets
-
-To re-download or refresh the 2,000-line sample datasets:
-```bash
-python scripts/download_datasets.py
-```
-To load external logs, place any `.log` or `.txt` file into `data/` or use the web dashboard's drag-and-drop file uploader.
+> **Log Sanitization & Isolation**:
+> Production logs may contain unsanitized IP addresses or internal hostnames. All logs ingested into AETHER pass through our automated **DataGovernor Redaction Engine** (`backend/normalization/redactor.py`) before feature extraction or AI reasoning.
