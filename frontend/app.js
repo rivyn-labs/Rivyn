@@ -1,4 +1,4 @@
-// AETHER AI Observability - Frontend Controller
+// Rivyn - Frontend Controller
 
 const INCIDENT_PAGE_SIZE = 12;
 let incidentOffset = 0;
@@ -30,7 +30,7 @@ function initTheme() {
 
     root.setAttribute("data-theme", next);
     try {
-      localStorage.setItem("aether-theme", next);
+      localStorage.setItem("rivyn-theme", next);
     } catch (e) {
       /* storage blocked (private mode) — theme still applies for this session */
     }
@@ -142,11 +142,6 @@ async function fetchOverview() {
       document.getElementById("kpiIncidents").textContent = data.metrics.incidents_count;
       document.getElementById("kpiAnomaliesSub").textContent = `from ${data.metrics.anomalies_count} raw anomalies`;
       document.getElementById("kpiSpeedup").textContent = `${data.metrics.triage_speedup_ratio}x`;
-      const baseline = data.triage_baseline;
-      if (baseline) {
-        document.getElementById("kpiSpeedupSub").textContent =
-          `vs. ${baseline.manual_seconds_per_anomalous_log}s per anomalous log baseline`;
-      }
       document.getElementById("kpiDialect").textContent = (data.detected_format || "generic").toUpperCase();
       document.getElementById("kpiLogsCount").textContent = `${data.total_logs} logs parsed (${data.templates_count} templates)`;
     }

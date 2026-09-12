@@ -73,7 +73,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    description="Evidence-first AI observability platform for heterogeneous logs (MHP Challenge)",
+    description="Rivyn turns raw logs into clear next moves.",
     version="1.0.0",
     lifespan=lifespan
 )

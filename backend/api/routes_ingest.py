@@ -76,10 +76,10 @@ def get_binary_stats():
 @router.get("/datasets")
 def list_available_datasets():
     datasets = [
-        {"id": "openstack", "name": "OpenStack Cloud (207,820 Lines - 100% Complete)", "type": "Cloud Infrastructure", "scale": "Complete LogHub (100%)", "file": "OpenStack.log"},
-        {"id": "linux", "name": "Linux Syslog (25,567 Lines - 100% Complete)", "type": "Operating System", "scale": "Complete LogHub (100%)", "file": "Linux.log"},
-        {"id": "zookeeper", "name": "Apache ZooKeeper (74,380 Lines - 100% Complete)", "type": "Distributed Coordination", "scale": "Complete LogHub (100%)", "file": "Zookeeper.log"},
-        {"id": "hadoop", "name": "Apache Hadoop (394,310 Lines - 100% Complete)", "type": "Big Data Compute", "scale": "Complete LogHub (100%)", "file": "Hadoop.log"},
+        {"id": "openstack", "name": "OpenStack", "type": "Cloud Infrastructure", "scale": "Complete LogHub", "file": "OpenStack.log"},
+        {"id": "linux", "name": "Linux", "type": "Operating System", "scale": "Complete LogHub", "file": "Linux.log"},
+        {"id": "zookeeper", "name": "ZooKeeper", "type": "Distributed Coordination", "scale": "Complete LogHub", "file": "Zookeeper.log"},
+        {"id": "hadoop", "name": "Hadoop", "type": "Big Data Compute", "scale": "Complete LogHub", "file": "Hadoop.log"},
         {"id": "spark", "name": "Apache Spark (500,000 Lines Milestone)", "type": "Distributed Analytics", "scale": "Large Scale (500k)", "file": "Spark.log"},
         {"id": "bgl", "name": "BlueGene/L Supercomputer (4.75M Lines - HPC)", "type": "Supercomputing / HPC", "scale": "Supercomputing Scale", "file": "BGL.log"},
         {"id": "hdfs", "name": "HDFS Distributed FS (1.58 GB / 11M Lines)", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},

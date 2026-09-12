@@ -41,7 +41,7 @@ This guide outlines the **3-minute live pitch and demo script** tailored specifi
    - Demonstrate that data governance is enforced (`[REDACTED]` tokens).
 
 ### Step 4: Grounded AI Copilot (45 seconds)
-1. Scroll to the **Grounded Investigation Copilot** at the top:
+1. Scroll to **Ask your logs** at the top:
 2. Click the suggested prompt: *"Why did the packet responder terminate?"* or type a custom question.
 3. Click **Investigate**:
    - Show that the response answers the question directly and cites specific evidence tags: `Line #1 [dfs.DataNode$PacketResponder]`.

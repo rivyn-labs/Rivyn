@@ -1,8 +1,8 @@
-# AETHER Observability: Architecture & System Design
+# Rivyn: Architecture & System Design
 
 ## Overview
 
-AETHER is an **evidence-first, model-assisted** AI observability platform developed for **MHP Challenge 1: AI-Powered Observability**. 
+Rivyn is a model-assisted AI log intelligence platform developed for **MHP Challenge 1: AI-Powered Observability**.
 
 The core design principle addresses the fundamental limitation identified by MHP:
 > *"An LLM cannot use evidence it never sees. Raw logs sit outside the model, go stale quickly, and are too large to paste into every prompt. Deterministic steps must retain control over parsing, retrieval, and scoring before generation."*

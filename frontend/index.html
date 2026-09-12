@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
-  <title>AETHER | AI-Powered Observability (MHP Hackathon)</title>
+  <title>Rivyn | Log Intelligence</title>
 
   <!-- Theme applied before first paint to avoid a flash of the wrong theme -->
   <script>
     (function () {
       try {
-        var t = localStorage.getItem("aether-theme");
+        var t = localStorage.getItem("rivyn-theme");
         if (t === "light" || t === "dark") {
           document.documentElement.setAttribute("data-theme", t);
         }
@@ -34,23 +34,21 @@
   <!-- Top Navigation Bar -->
   <header>
     <div class="logo-area">
-      <span class="brand-badge">MHP Case 1</span>
       <div>
-        <div class="logo-title">AETHER Observability</div>
-        <div class="logo-subtitle">Evidence-First AI Log Intelligence &amp; Root Cause Engine</div>
+        <div class="logo-title">Rivyn</div>
       </div>
     </div>
 
     <div class="header-controls">
       <label for="datasetSelect" class="header-label">Dataset</label>
       <select id="datasetSelect" class="select-dataset">
-        <option value="openstack">OpenStack Cloud (207,820 Lines - 100% Complete)</option>
-        <option value="linux" selected>Linux Syslog (25,567 Lines - 100% Complete)</option>
-        <option value="zookeeper">Apache ZooKeeper (74,380 Lines - 100% Complete)</option>
-        <option value="hadoop">Apache Hadoop (394,310 Lines - 100% Complete)</option>
-        <option value="spark">Apache Spark (500,000 Lines Milestone)</option>
-        <option value="bgl">BlueGene/L Supercomputer (4.75M Lines - HPC)</option>
-        <option value="hdfs">HDFS Distributed FS (1.58 GB / 11M Lines)</option>
+        <option value="openstack">OpenStack</option>
+        <option value="linux" selected>Linux</option>
+        <option value="zookeeper">ZooKeeper</option>
+        <option value="hadoop">Hadoop</option>
+        <option value="spark">Spark</option>
+        <option value="bgl">BlueGene/L</option>
+        <option value="hdfs">HDFS</option>
       </select>
 
       <button id="btnUpdateDataset" class="btn btn-secondary" title="Re-ingest selected dataset and refresh dashboard">
@@ -77,9 +75,8 @@
 
   <section class="signal-hero" aria-labelledby="signalHeroTitle">
     <div class="signal-hero-copy">
-      <p class="signal-eyebrow"><span></span> Evidence-first observability</p>
       <h1 id="signalHeroTitle">See the signal<br><em>before</em> the incident.</h1>
-      <p class="signal-hero-summary">AETHER turns heterogeneous logs into ranked, evidence-linked decisions—without asking your team to trust a black box.</p>
+      <p class="signal-hero-summary">Turn raw logs into a clear next move.</p>
     </div>
     <div class="signal-status" aria-label="Platform capabilities">
       <div class="signal-status-head"><span class="live-dot"></span> System signal</div>
@@ -103,9 +100,9 @@
     </div>
 
     <div class="kpi-card success">
-      <div class="kpi-title">Modeled Triage Speedup</div>
+      <div class="kpi-title">Triage Speed</div>
       <div class="kpi-value" id="kpiSpeedup">--x</div>
-      <div class="kpi-subtext" id="kpiSpeedupSub">vs. 15s per anomalous log baseline</div>
+      <div class="kpi-subtext" id="kpiSpeedupSub">Faster investigation</div>
     </div>
 
     <div class="kpi-card">
@@ -129,8 +126,8 @@
       <div class="copilot-header">
         <div class="copilot-icon" aria-hidden="true">AI</div>
         <div>
-          <h2 class="copilot-title">Grounded Investigation Copilot</h2>
-          <p class="copilot-desc">Ask natural-language questions grounded strictly on retrieved log evidence</p>
+          <h2 class="copilot-title">Ask your logs</h2>
+          <p class="copilot-desc">Ask a question and follow the source lines behind the answer.</p>
         </div>
       </div>
 
@@ -151,13 +148,13 @@
 
       <div id="copilotAnswerBox" class="copilot-answer-box" role="status" aria-live="polite">
         <div class="copilot-answer-head">
-          <span class="copilot-answer-label">Evidence-Grounded Conclusion</span>
+          <span class="copilot-answer-label">Answer</span>
           <span id="copilotConfidence" class="confidence-chip">Confidence: --%</span>
         </div>
         <p id="copilotAnswerText" class="copilot-answer-text"></p>
 
         <div style="margin-top: 14px;">
-          <div class="field-label">Cited Log Evidence</div>
+          <div class="field-label">Sources</div>
           <div id="copilotEvidenceList" class="evidence-tags"></div>
         </div>
       </div>

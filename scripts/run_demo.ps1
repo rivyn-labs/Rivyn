@@ -1,6 +1,6 @@
-# Run script for AETHER AI-Powered Observability
+# Run script for Rivyn
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "   Starting AETHER AI Observability Platform (MHP Case 1) " -ForegroundColor Yellow
+Write-Host "   Starting Rivyn " -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # Check if sample datasets exist
