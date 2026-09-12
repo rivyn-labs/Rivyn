@@ -7,7 +7,7 @@
 [![Tests](https://img.shields.io/badge/pytest-32_passed-brightgreen.svg)](https://pytest.org)
 [![MHP Challenge](https://img.shields.io/badge/MHP_Hackathon-Take_the_Money_and_Run-blueviolet.svg)](#)
 
-> **AETHER** is an enterprise-grade AI observability platform designed for the **MHP Hackathon ("Take the Money and Run")**. It transforms multi-gigabyte unformatted raw system logs into structured columnar binary storage (**Apache Parquet**), uncovers rare behavioral shifts using **Multi-Tier AI Anomaly Detection**, and clusters alert floods into root-cause incident tickets with **99.9% noise reduction** and **vectorized querying up to 21+ Million rows/second**.
+> **AETHER** is an enterprise-grade AI observability platform designed for the **MHP Hackathon ("Take the Money and Run")**. It transforms multi-gigabyte unformatted raw system logs into structured columnar binary storage (**Apache Parquet**), uncovers rare behavioral shifts using **Multi-Tier AI Anomaly Detection**, and clusters alert floods into root-cause incident tickets, measured at **88-97% alert noise reduction** on the committed LogHub datasets.
 
 ---
 
@@ -20,7 +20,7 @@
  ┌─────────────────────────────────────────────────────────┐
  │ 1. Single-Pass Regex Drain Tree Parser                  │
  │    • Dynamic regex-masked parameter extraction          │
- │    • Semantic template mining (14k+ lines/sec)          │
+ │    • Semantic template mining (2.3k-5k lines/sec)       │
  └─────────────────────────────────────────────────────────┘
         │
         ▼
@@ -44,13 +44,13 @@
  │ 4. Temporal & Topological Incident Correlator           │
  │    • Sliding time-window correlation (Δt ≤ 120s)        │
  │    • Compresses alerts into root-cause tickets          │
- │    • 86.95% to 99.90% ALERT NOISE REDUCTION             │
+ │    • 88% - 97% measured alert noise reduction           │
  └─────────────────────────────────────────────────────────┘
         │
         ▼
  ┌─────────────────────────────────────────────────────────┐
  │ 5. Grounded Copilot & Interactive Incident Board        │
- │    • Zero-hallucination semantic RAG with citations     │
+ │    • Evidence-grounded TF-IDF retrieval with citations  │
  │    • Live Web Dashboard running at http://localhost:8000 │
  └─────────────────────────────────────────────────────────┘
 ```
@@ -59,35 +59,64 @@
 
 ## Definitive Benchmark Results: Official LogHub Production Datasets
 
-Evaluated across the **three authoritative LogHub datasets** located in `data/samples/`:
-1. **Linux**: 100% full complete real-world dataset (25,567 lines)
-2. **OpenStack**: 100% full complete real-world cloud infrastructure dataset (207,820 lines, 58.6 MB)
-3. **HDFS**: Massive distributed file system dataset (1,000,000 lines evaluated from the 1.58 GB / 11,175,629 lines dataset)
+Evaluated across the LogHub datasets committed to `data/samples/`, so every figure
+below can be reproduced from a fresh clone:
+1. **Linux**: complete real-world dataset (25,567 lines, 2.38 MB)
+2. **OpenStack**: complete real-world cloud infrastructure dataset (207,820 lines, 61.65 MB)
+
+> **On HDFS.** Earlier revisions of this table reported a 1,000,000-line HDFS run.
+> The 1.58 GB `HDFS.log` it was measured from is not committed to this repository,
+> so those figures could not be reproduced from a clone and have been removed rather
+> than left standing. Re-add the column once the dataset is fetchable via
+> `scripts/download_datasets.py`.
+
+> **How these were measured.** Single run, Python 3.12, Windows 11, consumer laptop,
+> no warm cache. Throughput and elapsed time are hardware-dependent and will differ
+> on other machines. Template counts, anomaly counts, incident counts and noise
+> reduction are deterministic and should reproduce exactly.
 
 ### Comprehensive Performance & KPI Summary
 
-| Metric | Linux (100% Full) | OpenStack (100% Full) | HDFS (Enterprise Scale) |
-| :--- | :---: | :---: | :---: |
-| **System Category** | Operating System (Syslog/Auth) | Cloud Infrastructure (Nova/Keystone) | Distributed File System (DataNode/Block) |
-| **Raw File Path** | `data/samples/Linux.log` | `data/samples/OpenStack.log` | `data/samples/HDFS.log` |
-| **Raw File Size** | 2.24 MB | 58.60 MB | 1,504.88 MB (1.58 GB) |
-| **Lines Evaluated** | **25,567 lines (100%)** | **207,820 lines (100%)** | **1,000,000 lines** |
-| **Detected Dialect** | `syslog` | `openstack` | `hdfs` |
-| **Drain Templates Discovered** | 452 | 122 | 36 |
-| **Drain Parse Speed** | **14,034 lines/sec** | **6,779 lines/sec** | **10,831 lines/sec** |
-| **Total Ingestion Time** | 1.82 seconds | 30.66 seconds | 92.32 seconds |
-| **Raw Anomalies Flagged** | 15,361 | 5,379 | 94,523 |
-| **Correlated Incidents Formed** | 2,004 | 4 | 8 |
-| **Alert Noise Reduction (%)** | **86.95%** | **99.90%** | **99.90%** |
-| **Triage Velocity Speedup** | **95.7x** | **1,918.8x** | **11,899.7x** |
-| **Raw Text Size** | 2.21 MB | 58.40 MB | 132.35 MB |
-| **Parquet Binary Size** | **0.75 MB** | **22.60 MB** | **53.82 MB** |
-| **Storage Space Saved** | **66.25% saved** | **61.30% saved** | **59.33% saved** |
-| **Storage Reduction Factor** | **3.0x smaller** | **2.6x smaller** | **2.5x smaller** |
-| **Columnar Scan Latency** | 38.92 ms | 16.48 ms | 46.05 ms |
-| **Zero-Copy Scan Throughput** | **656,844 rows/sec** | **12,609,671 rows/sec** | **21,714,583 rows/sec** |
+| Metric | Linux (100% Full) | OpenStack (100% Full) |
+| :--- | :---: | :---: |
+| **System Category** | Operating System (Syslog/Auth) | Cloud Infrastructure (Nova/Keystone) |
+| **Raw File Path** | `data/samples/Linux.log` | `data/samples/OpenStack.log` |
+| **Raw File Size** | 2.38 MB | 61.65 MB |
+| **Lines Evaluated** | **25,567 lines (100%)** | **207,820 lines (100%)** |
+| **Detected Dialect** | `syslog` | `openstack` |
+| **Drain Templates Discovered** | 452 | 122 |
+| **Parse Speed** | 5,080 lines/sec | 2,324 lines/sec |
+| **Total Ingestion Time** | 5.03 seconds | 89.41 seconds |
+| **Raw Anomalies Flagged** | 15,361 | 5,379 |
+| **Correlated Incidents Formed** | 1,811 | 137 |
+| **Alert Noise Reduction (%)** | **88.21%** | **97.45%** |
+| **Triage Velocity Speedup** | 106.0x | 489.3x |
+| **Raw Text Size** | 2.21 MB | 58.40 MB |
+| **Parquet Binary Size** | **0.75 MB** | **22.60 MB** |
+| **Storage Space Saved** | **66.25% saved** | **61.30% saved** |
+| **Storage Reduction Factor** | **3.0x smaller** | **2.6x smaller** |
 
-*All benchmark results are automatically generated and verifiable via `scripts/benchmark_three_datasets.py` and saved to `data/benchmark_three_datasets.json`.*
+*Reproduce with `scripts/benchmark_three_datasets.py`.*
+
+### Known limitations
+
+Stated plainly, because the MHP brief asks for documented limitations rather than
+a clean-looking table.
+
+- **BGL correlation is weak (~40% noise reduction).** The template miner emits a
+  near-unique template for almost every BGL line (682 templates across 1,006
+  anomalies), so there is little for the correlator to collapse. This is a parsing
+  limitation, not a correlation one.
+- **Ingestion is bounded by memory.** The pipeline holds every parsed line in RAM
+  as a Pydantic object, measured at roughly 3.5 KB per line. That puts a practical
+  ceiling near 1-2M lines on a 16 GB machine. Streaming ingestion is the next
+  architectural step and is not implemented.
+- **Retrieval is lexical, not semantic.** The index is TF-IDF over log chunks, so
+  it matches wording rather than meaning. A query phrased differently from the
+  underlying log text may miss.
+- **LLM reasoning is opt-in.** Without an API key the platform serves its
+  deterministic rule-based narratives. Every incident reports which engine produced
+  it via the `reasoning_engine` field.
 
 ---
 
@@ -95,13 +124,13 @@ Evaluated across the **three authoritative LogHub datasets** located in `data/sa
 
 ### 1. Ingestion & Pre-Parsing Optimization (Drain3 Algorithm)
 - Replaced slow multi-pass regex loops with a single-pass compiled regex mask (`COMBINED_MASK`) matching IP addresses, UUIDs, hex values, file paths, and dates in a single scan.
-- Achieves **10,000 – 14,000 lines/second** pure Python parsing throughput.
+- Measured at **2,300 - 5,100 lines/second** pure Python parsing throughput on a consumer laptop (hardware-dependent).
 - Discovers semantic clusters without manual regex configuration.
 
 ### 2. Big Data Binary Columnar Storage (Apache Parquet)
 - Bakes structured schema (`timestamp`, `template_id`, `parameter_list`, `service`, `level`, `anomaly_score`) directly into Parquet files with dictionary encoding and Snappy compression.
 - Achieves **2.5x to 3.0x storage reduction** compared to raw plaintext.
-- Vectorized PyArrow scanners push down filters directly at the byte level, achieving query throughput of **12 to 21+ Million rows per second**.
+- Vectorized PyArrow scanners push filters down at the byte level. Scan throughput is reported per run by `/api/storage/binary-stats` rather than quoted here, since it varies widely with cache state.
 
 ### 3. Multi-Tier AI Anomaly Detection & Incident Correlation
 - **Tier 1 (Template Rarity)**: Identifies infrequent log templates (<1-2% of overall frequency).
