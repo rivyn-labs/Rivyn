@@ -18,12 +18,16 @@ class LogLoader:
         if not dataset_name:
             dataset_name = os.path.splitext(os.path.basename(filepath))[0]
 
+        # Iterate the file and stop at whichever comes first, the cap or EOF.
+        # The previous comprehension issued exactly max_lines readline() calls
+        # regardless of EOF, so a generous cap meaning "read everything" spun
+        # through millions of empty reads instead of returning.
+        lines = []
         with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
-            if max_lines is not None:
-                lines = [f.readline() for _ in range(max_lines)]
-                lines = [l for l in lines if l]
-            else:
-                lines = [l.rstrip("\r\n") for l in f]
+            for line in f:
+                if max_lines is not None and len(lines) >= max_lines:
+                    break
+                lines.append(line.rstrip("\r\n"))
 
         return cls.load_from_lines(lines, dataset_name=dataset_name)
 
