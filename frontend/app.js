@@ -2,6 +2,10 @@
 
 const INCIDENT_PAGE_SIZE = 12;
 let incidentOffset = 0;
+let activeUploadJobId = null;
+let uploadStartedAt = null;
+let uploadTimerId = null;
+let uploadPollId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
@@ -84,11 +88,17 @@ function bindEvents() {
   const btnCancelUpload = document.getElementById("btnCancelUpload");
   const btnSubmitUpload = document.getElementById("btnSubmitUpload");
 
+  fileInput.addEventListener("change", previewUploadFile);
+
   btnUploadModal.addEventListener("click", () => {
     uploadModal.style.display = "flex";
   });
 
-  const closeModal = () => { uploadModal.style.display = "none"; };
+  const closeModal = () => {
+    if (activeUploadJobId) return;
+    resetUploadUi();
+    uploadModal.style.display = "none";
+  };
   btnCloseModal.addEventListener("click", closeModal);
   btnCancelUpload.addEventListener("click", closeModal);
 
@@ -384,23 +394,151 @@ async function handleFileUpload() {
   }
 
   const file = fileInput.files[0];
+  if (file.size > 10 * 1024 * 1024) {
+    showUploadFailure("This file is larger than the 10 MiB interactive-demo limit.");
+    return;
+  }
   const formData = new FormData();
   formData.append("file", file);
+
+  prepareUploadUi(file);
 
   try {
     const res = await fetch("/api/ingest/upload", {
       method: "POST",
       body: formData
     });
-    if (res.ok) {
-      document.getElementById("uploadModal").style.display = "none";
-      await refreshDashboard();
-    } else {
-      alert("Failed to ingest file.");
-    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Failed to start analysis.");
+    activeUploadJobId = data.job_id;
+    document.getElementById("uploadEstimatedTime").textContent = formatDuration(data.estimated_seconds);
+    document.getElementById("uploadRemainingTime").textContent = formatDuration(data.estimated_seconds);
+    updateUploadProgress("Queued for analysis", 4);
+    pollUploadJob();
   } catch (err) {
     console.error("Upload error:", err);
+    showUploadFailure(err.message || "Upload failed. Please try again.");
   }
+}
+
+function previewUploadFile() {
+  const file = document.getElementById("fileInput").files[0];
+  const preview = document.getElementById("uploadFilePreview");
+  if (!file) {
+    preview.hidden = true;
+    return;
+  }
+  const estimate = estimateClientSeconds(file.size);
+  document.getElementById("uploadFileName").textContent = file.name;
+  document.getElementById("uploadFileMeta").textContent = `${formatBytes(file.size)} · analysis estimate`;
+  document.getElementById("uploadClientEstimate").textContent = `~${formatDuration(estimate)}`;
+  preview.hidden = false;
+}
+
+function prepareUploadUi(file) {
+  activeUploadJobId = null;
+  uploadStartedAt = Date.now();
+  const progress = document.getElementById("uploadProgress");
+  progress.hidden = false;
+  document.getElementById("btnSubmitUpload").disabled = true;
+  document.getElementById("btnSubmitUpload").textContent = "Analyzing…";
+  document.getElementById("btnCancelUpload").disabled = true;
+  document.getElementById("btnCloseModal").disabled = true;
+  document.getElementById("uploadResult").textContent = "";
+  document.getElementById("uploadEstimatedTime").textContent = formatDuration(estimateClientSeconds(file.size));
+  document.getElementById("uploadRemainingTime").textContent = "Calculating…";
+  updateUploadProgress("Uploading file", 2);
+  clearInterval(uploadTimerId);
+  uploadTimerId = setInterval(() => {
+    document.getElementById("uploadElapsedTime").textContent = formatDuration((Date.now() - uploadStartedAt) / 1000);
+  }, 250);
+}
+
+async function pollUploadJob() {
+  if (!activeUploadJobId) return;
+  try {
+    const res = await fetch(`/api/ingest/jobs/${activeUploadJobId}`);
+    const job = await res.json();
+    if (!res.ok) throw new Error(job.detail || "Could not read analysis progress.");
+
+    updateUploadProgress(job.stage, job.progress);
+    document.getElementById("uploadElapsedTime").textContent = formatDuration(job.elapsed_seconds);
+    document.getElementById("uploadEstimatedTime").textContent = formatDuration(job.estimated_seconds);
+    document.getElementById("uploadRemainingTime").textContent = job.status === "complete"
+      ? "Done"
+      : formatDuration(job.remaining_seconds);
+
+    if (job.status === "complete") {
+      clearInterval(uploadTimerId);
+      const lines = Number(job.lines_processed || 0).toLocaleString();
+      const speed = Number(job.lines_per_second || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      document.getElementById("uploadResult").textContent = `Ready · ${lines} lines processed in ${formatDuration(job.elapsed_seconds)} (${speed} lines/sec)`;
+      finishUploadUi();
+      await refreshDashboard();
+      return;
+    }
+    if (job.status === "failed") throw new Error(job.error || "Analysis failed.");
+    uploadPollId = setTimeout(pollUploadJob, 550);
+  } catch (err) {
+    console.error("Upload progress error:", err);
+    showUploadFailure(err.message || "Analysis failed. Please try again.");
+  }
+}
+
+function updateUploadProgress(stage, progress) {
+  const safeProgress = Math.max(0, Math.min(100, Number(progress) || 0));
+  document.getElementById("uploadStage").textContent = stage;
+  document.getElementById("uploadPercent").textContent = `${safeProgress}%`;
+  document.getElementById("uploadProgressBar").style.width = `${safeProgress}%`;
+}
+
+function finishUploadUi() {
+  activeUploadJobId = null;
+  clearTimeout(uploadPollId);
+  document.getElementById("btnSubmitUpload").disabled = false;
+  document.getElementById("btnSubmitUpload").textContent = "Analyze another file";
+  document.getElementById("btnCancelUpload").disabled = false;
+  document.getElementById("btnCancelUpload").textContent = "Close";
+  document.getElementById("btnCloseModal").disabled = false;
+}
+
+function showUploadFailure(message) {
+  activeUploadJobId = null;
+  clearInterval(uploadTimerId);
+  clearTimeout(uploadPollId);
+  document.getElementById("uploadProgress").hidden = false;
+  updateUploadProgress("Upload failed", 0);
+  document.getElementById("uploadRemainingTime").textContent = "--";
+  document.getElementById("uploadResult").textContent = message;
+  finishUploadUi();
+}
+
+function resetUploadUi() {
+  clearInterval(uploadTimerId);
+  clearTimeout(uploadPollId);
+  uploadStartedAt = null;
+  document.getElementById("fileInput").value = "";
+  document.getElementById("uploadFilePreview").hidden = true;
+  document.getElementById("uploadProgress").hidden = true;
+  document.getElementById("btnCancelUpload").textContent = "Cancel";
+  document.getElementById("btnSubmitUpload").textContent = "Ingest & Analyze";
+}
+
+function estimateClientSeconds(bytes) {
+  return Math.max(5, Math.ceil(bytes / 650000) + 4);
+}
+
+function formatDuration(seconds) {
+  if (!Number.isFinite(Number(seconds))) return "--";
+  const total = Math.max(0, Math.round(Number(seconds)));
+  const minutes = Math.floor(total / 60);
+  const remaining = String(total % 60).padStart(2, "0");
+  return minutes ? `${minutes}m ${remaining}s` : `${remaining}s`;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 async function runBenchmark() {
