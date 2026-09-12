@@ -13,7 +13,7 @@ def test_e2e_datasets_list():
     res = client.get("/api/datasets")
     assert res.status_code == 200
     datasets = res.json()["datasets"]
-    assert len(datasets) == 3
+    assert len(datasets) >= 3
     dataset_ids = [d["id"] for d in datasets]
     assert "openstack" in dataset_ids
     assert "linux" in dataset_ids

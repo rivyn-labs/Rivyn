@@ -73,9 +73,13 @@ def get_binary_stats():
 @router.get("/datasets")
 def list_available_datasets():
     datasets = [
-        {"id": "openstack", "name": "OpenStack Cloud (207,820 Lines - Complete LogHub)", "type": "Cloud Infrastructure", "scale": "Complete LogHub (100%)", "file": "OpenStack.log"},
-        {"id": "linux", "name": "Linux Syslog (25,567 Lines - Complete LogHub)", "type": "Operating System", "scale": "Complete LogHub (100%)", "file": "Linux.log"},
-        {"id": "hdfs", "name": "HDFS Distributed FS (1.58 GB / 11M Lines - LogHub)", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
+        {"id": "openstack", "name": "OpenStack Cloud (207,820 Lines - 100% Complete)", "type": "Cloud Infrastructure", "scale": "Complete LogHub (100%)", "file": "OpenStack.log"},
+        {"id": "linux", "name": "Linux Syslog (25,567 Lines - 100% Complete)", "type": "Operating System", "scale": "Complete LogHub (100%)", "file": "Linux.log"},
+        {"id": "zookeeper", "name": "Apache ZooKeeper (74,380 Lines - 100% Complete)", "type": "Distributed Coordination", "scale": "Complete LogHub (100%)", "file": "Zookeeper.log"},
+        {"id": "hadoop", "name": "Apache Hadoop (394,310 Lines - 100% Complete)", "type": "Big Data Compute", "scale": "Complete LogHub (100%)", "file": "Hadoop.log"},
+        {"id": "spark", "name": "Apache Spark (500,000 Lines Milestone)", "type": "Distributed Analytics", "scale": "Large Scale (500k)", "file": "Spark.log"},
+        {"id": "bgl", "name": "BlueGene/L Supercomputer (4.75M Lines - HPC)", "type": "Supercomputing / HPC", "scale": "Supercomputing Scale", "file": "BGL.log"},
+        {"id": "hdfs", "name": "HDFS Distributed FS (1.58 GB / 11M Lines)", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
     ]
     return {"datasets": datasets}
 
@@ -88,13 +92,26 @@ def ingest_sample(req: SampleIngestRequest):
     elif ds in ("linux", "linux_full"):
         filepath = "data/samples/Linux.log"
         lines_limit = req.max_lines or 25567
+    elif ds in ("zookeeper", "zookeeper_full"):
+        filepath = "data/samples/Zookeeper.log" if os.path.exists("data/samples/Zookeeper.log") else "data/samples/Zookeeper/Zookeeper.log"
+        lines_limit = req.max_lines or 74380
+    elif ds in ("hadoop", "hadoop_full"):
+        filepath = "data/samples/Hadoop.log"
+        lines_limit = req.max_lines or 394310
+    elif ds in ("spark", "spark_sample"):
+        filepath = "data/samples/Spark.log"
+        lines_limit = req.max_lines or 100000
+    elif ds in ("bgl", "bgl_sample", "bgl_full"):
+        filepath = "data/samples/BGL/BGL.log" if os.path.exists("data/samples/BGL/BGL.log") else "data/samples/BGL.log"
+        lines_limit = req.max_lines or 100000
     elif ds in ("hdfs", "hdfs_big", "hdfs_full"):
         filepath = "data/samples/HDFS.log"
         lines_limit = req.max_lines or 100000
     else:
-        # Check direct path or filename
         filepath = f"data/samples/{req.dataset}.log"
-        lines_limit = req.max_lines or 5000
+        if not os.path.exists(filepath):
+            filepath = f"data/samples/{req.dataset}/{req.dataset}.log"
+        lines_limit = req.max_lines or 50000
 
     if not os.path.exists(filepath):
         raise HTTPException(status_code=404, detail=f"Sample dataset file '{filepath}' not found.")

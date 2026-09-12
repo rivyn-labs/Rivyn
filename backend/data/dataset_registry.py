@@ -98,6 +98,32 @@ class DatasetRegistry:
             "description": "Hadoop Distributed File System block replication and termination logs",
             "file": "HDFS.log",
         },
+        "zookeeper": {
+            "name": "ZooKeeper",
+            "domain": "distributed_systems",
+            "description": "Apache ZooKeeper coordination service, leader election, quorum consensus logs",
+            "file": "Zookeeper.log",
+            "alt_file": "Zookeeper/Zookeeper.log",
+        },
+        "bgl": {
+            "name": "BGL",
+            "domain": "supercomputing",
+            "description": "BlueGene/L supercomputer system RAS kernel, memory parity, and alert logs",
+            "file": "BGL/BGL.log",
+            "alt_file": "BGL.log",
+        },
+        "hadoop": {
+            "name": "Hadoop",
+            "domain": "distributed_systems",
+            "description": "Apache Hadoop MapReduce & YARN container failure injection logs",
+            "file": "Hadoop.log",
+        },
+        "spark": {
+            "name": "Spark",
+            "domain": "distributed_systems",
+            "description": "Apache Spark distributed compute engine, executor tasks, and shuffle logs",
+            "file": "Spark.log",
+        },
     }
 
     @classmethod
@@ -123,7 +149,15 @@ class DatasetRegistry:
         info = cls._DATASETS[key]
         samples_dir = base_dir or BASE_SAMPLES_DIR
         raw_file = os.path.join(samples_dir, info["file"])
-        readme_file = os.path.join(samples_dir, "README.md")
+        if not os.path.exists(raw_file) and "alt_file" in info:
+            alt = os.path.join(samples_dir, info["alt_file"])
+            if os.path.exists(alt):
+                raw_file = alt
+
+        # Check dataset specific README or fallback to top-level
+        specific_readme = os.path.join(samples_dir, info["name"], "README.md")
+        general_readme = os.path.join(samples_dir, "README.md")
+        readme_file = specific_readme if os.path.exists(specific_readme) else general_readme
 
         return DatasetEntry(
             key=key,

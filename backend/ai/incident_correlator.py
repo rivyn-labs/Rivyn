@@ -74,10 +74,18 @@ class IncidentCorrelator:
 
     @staticmethod
     def _span(group: List[NormalizedLog]) -> Tuple[float, float]:
-        stamps = [l.timestamp_epoch for l in group if l.timestamp_epoch is not None]
-        if not stamps:
-            return (0.0, 0.0)
-        return (min(stamps), max(stamps))
+        # Fast O(1) span since logs in group are ordered chronologically
+        t_start = 0.0
+        t_end = 0.0
+        for l in group:
+            if l.timestamp_epoch is not None:
+                t_start = l.timestamp_epoch
+                break
+        for l in reversed(group):
+            if l.timestamp_epoch is not None:
+                t_end = l.timestamp_epoch
+                break
+        return (t_start, t_end)
 
     def _overlaps(self, a: List[NormalizedLog], b: List[NormalizedLog]) -> bool:
         a_start, a_end = self._span(a)
@@ -154,6 +162,10 @@ class IncidentCorrelator:
             if ri != rj:
                 parent[max(ri, rj)] = min(ri, rj)
 
+        # Precompute spans once per group for instant O(1) overlap checks
+        spans = [self._span(g) for g in groups]
+        slack = self.time_window_sec
+
         # Index entity -> groups naming it, so we only compare plausible pairs
         # instead of every group against every other.
         entity_index: Dict[str, List[int]] = defaultdict(list)
@@ -170,8 +182,11 @@ class IncidentCorrelator:
             # Chaining consecutive candidates is enough: union-find makes the
             # relation transitive across the whole set.
             for a, b in zip(candidates, candidates[1:]):
-                if find(a) != find(b) and self._overlaps(groups[a], groups[b]):
-                    union(a, b)
+                if find(a) != find(b):
+                    a_start, a_end = spans[a]
+                    b_start, b_end = spans[b]
+                    if a_start <= b_end + slack and b_start <= a_end + slack:
+                        union(a, b)
 
         merged: Dict[int, List[NormalizedLog]] = defaultdict(list)
         for gi, group in enumerate(groups):

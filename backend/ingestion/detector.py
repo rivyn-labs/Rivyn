@@ -12,6 +12,9 @@ class LogStructureDetector:
     BGL_PATTERN = re.compile(r'^[-\w]+\s+\d{10}\s+\d{4}\.\d{2}\.\d{2}|^\d{4}-\d{2}-\d{2}-\d{2}\.\d{2}\.\d{2}')
     SYSLOG_PATTERN = re.compile(r'^[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+[\w\-.]+\s+[\w\-.()/]+(?:\[\d+\])?:')
     OPENSTACK_PATTERN = re.compile(r'^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+\d+\s+(INFO|WARNING|ERROR|DEBUG)')
+    ZOOKEEPER_PATTERN = re.compile(r'^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}[,\.]\d+\s+-\s+(INFO|WARN|ERROR|DEBUG)\s+\[')
+    HADOOP_PATTERN = re.compile(r'org\.apache\.hadoop|YARN_AM_RM_TOKEN|MRAppMaster|nodemanager')
+    SPARK_PATTERN = re.compile(r'^\d{2}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2}\s+(INFO|WARN|ERROR|DEBUG)|org\.apache\.spark|CoarseGrainedExecutor|spark-assembly|SLF4J:')
 
     @classmethod
     def detect(cls, sample_lines: List[str]) -> Dict[str, Any]:
@@ -27,6 +30,9 @@ class LogStructureDetector:
             "bgl": 0,
             "syslog": 0,
             "openstack": 0,
+            "zookeeper": 0,
+            "hadoop": 0,
+            "spark": 0,
             "json": 0
         }
 
@@ -43,6 +49,12 @@ class LogStructureDetector:
                 counts["hdfs"] += 1
             elif cls.BGL_PATTERN.search(line) or "NULL" in line and ("BGL" in line or "RAS" in line):
                 counts["bgl"] += 1
+            elif cls.ZOOKEEPER_PATTERN.search(line) or "QuorumPeer" in line or "zookeeper" in line.lower():
+                counts["zookeeper"] += 1
+            elif cls.HADOOP_PATTERN.search(line):
+                counts["hadoop"] += 1
+            elif cls.SPARK_PATTERN.search(line):
+                counts["spark"] += 1
             elif cls.OPENSTACK_PATTERN.search(line) or "req-" in line:
                 counts["openstack"] += 1
             elif cls.SYSLOG_PATTERN.search(line) or "sshd" in line:

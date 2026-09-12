@@ -39,9 +39,9 @@ class GroundedReasoner:
         model: Optional[str] = None,
         timeout_sec: Optional[float] = None
     ):
-        self.openai_api_key = openai_api_key or getattr(settings, "openai_api_key", None) or os.getenv("OPENAI_API_KEY")
-        self.anthropic_api_key = anthropic_api_key or getattr(settings, "anthropic_api_key", None) or os.getenv("ANTHROPIC_API_KEY")
-        self.gemini_api_key = gemini_api_key or getattr(settings, "gemini_api_key", None) or os.getenv("GEMINI_API_KEY")
+        self.openai_api_key = openai_api_key if openai_api_key is not None else (getattr(settings, "openai_api_key", None) or os.getenv("OPENAI_API_KEY"))
+        self.anthropic_api_key = anthropic_api_key if anthropic_api_key is not None else (getattr(settings, "anthropic_api_key", None) or os.getenv("ANTHROPIC_API_KEY"))
+        self.gemini_api_key = gemini_api_key if gemini_api_key is not None else (getattr(settings, "gemini_api_key", None) or os.getenv("GEMINI_API_KEY"))
         self.model = model or getattr(settings, "llm_model", "gpt-4o-mini")
         self.timeout_sec = timeout_sec or getattr(settings, "llm_timeout_sec", 12.0)
 

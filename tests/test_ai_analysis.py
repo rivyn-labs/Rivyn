@@ -56,7 +56,7 @@ def test_grounded_reasoner_anthropic_mock(monkeypatch):
 
     monkeypatch.setattr(anthropic, "Anthropic", lambda **kwargs: fake_client)
     
-    reasoner = GroundedReasoner(anthropic_api_key="sk-ant-test-key")
+    reasoner = GroundedReasoner(anthropic_api_key="sk-ant-test-key", openai_api_key="")
     batch = LogLoader.load_from_file(dataset_path("Linux.log"), max_lines=50)
     incident = IncidentReport(
         id="inc-test",

@@ -56,6 +56,15 @@ data/samples_expanded/
 temp_*/
 data/loghub/**/raw/*_full.log
 data/samples/HDFS.log
+data/samples/BGL/BGL.log
+data/samples/BGL/*.log
+data/samples/HDFS_v3_TraceBench/
+data/samples/Spark/
+data/samples/Spark.log
+data/samples/Hadoop/application_*/
+data/samples/Hadoop.log
+data/samples/Zookeeper.log
+data/samples/Zookeeper/
 node_logs/
 data/samples/node_logs/
 data/samples/*.zip

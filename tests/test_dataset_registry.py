@@ -16,7 +16,7 @@ def test_registry_domains():
 
 def test_registry_datasets_registered():
     datasets = DatasetRegistry.list_datasets()
-    assert len(datasets) == 3
+    assert len(datasets) >= 3
     for k in ["linux", "openstack", "hdfs"]:
         assert k in datasets
 

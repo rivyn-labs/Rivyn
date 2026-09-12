@@ -9,15 +9,17 @@ class TimestampParser:
     """
 
     # Common patterns
-    # 1. ISO format: 2017-05-16 02:51:08(.123)?
-    RE_ISO = re.compile(r'\b(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\b')
+    # 1. ISO format: 2017-05-16 02:51:08(.123 or ,123)?
+    RE_ISO = re.compile(r'\b(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\b')
     # 2. Syslog format: Jun 14 15:16:01 or Oct 21 04:12:00
     RE_SYSLOG = re.compile(r'\b([A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\b')
     # 3. HDFS format: 081109 203615 (YYMMDD HHMMSS)
     RE_HDFS = re.compile(r'\b(\d{6}\s+\d{6})\b')
-    # 4. BGL format: 2005-06-03-15.42.50.363779
+    # 4. Spark format: 15/09/01 18:14:40 (YY/MM/DD HH:MM:SS)
+    RE_SPARK = re.compile(r'\b(\d{2}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\b')
+    # 5. BGL format: 2005-06-03-15.42.50.363779
     RE_BGL = re.compile(r'\b(\d{4}-\d{2}-\d{2}-\d{2}\.\d{2}\.\d{2}(?:\.\d+)?)\b')
-    # 5. Epoch timestamp (10 or 13 digits)
+    # 6. Epoch timestamp (10 or 13 digits)
     RE_EPOCH = re.compile(r'\b(1[0-7]\d{8}(?:\.\d+)?)\b')
 
     CURRENT_YEAR = datetime.now().year
@@ -28,13 +30,23 @@ class TimestampParser:
         Extracts timestamp from line if present, and returns:
         (iso_timestamp_str, epoch_timestamp_float, line_without_timestamp)
         """
-        # Try ISO
+        # Try ISO (handles .123 and ,123)
         m = cls.RE_ISO.search(line)
         if m:
             raw_ts = m.group(1).replace('T', ' ')
-            clean_ts = raw_ts.split('.')[0]
+            clean_ts = re.split(r'[.,]', raw_ts)[0]
             try:
                 dt = datetime.strptime(clean_ts, "%Y-%m-%d %H:%M:%S")
+                return dt.isoformat(), dt.timestamp(), line[:m.start()] + line[m.end():]
+            except Exception:
+                pass
+
+        # Try Spark (YY/MM/DD HH:MM:SS)
+        m = cls.RE_SPARK.search(line)
+        if m:
+            raw_ts = m.group(1)
+            try:
+                dt = datetime.strptime(raw_ts, "%y/%m/%d %H:%M:%S")
                 return dt.isoformat(), dt.timestamp(), line[:m.start()] + line[m.end():]
             except Exception:
                 pass

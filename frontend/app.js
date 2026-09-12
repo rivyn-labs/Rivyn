@@ -97,10 +97,14 @@ async function refreshDashboard() {
 
 async function switchDataset(datasetName) {
   try {
-    let linesCount = 20000;
+    let linesCount = 50000;
     if (datasetName === "openstack") linesCount = 207820;
     else if (datasetName === "linux") linesCount = 25567;
-    else if (datasetName === "hdfs") linesCount = 50000;
+    else if (datasetName === "zookeeper") linesCount = 74380;
+    else if (datasetName === "hadoop") linesCount = 394310;
+    else if (datasetName === "spark") linesCount = 100000;
+    else if (datasetName === "bgl") linesCount = 100000;
+    else if (datasetName === "hdfs") linesCount = 100000;
 
     const res = await fetch("/api/ingest/sample", {
       method: "POST",

@@ -103,14 +103,57 @@ class GenericLogParser:
             message = rem_line
 
         elif dialect == "bgl":
-            # - 1117838570 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.42.50.363779 R02-M1-N0-C:J12-U11 ...
+            # - 1117838570 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.42.50.363779 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected
             tokens = rem_line.split()
             for token in tokens:
                 if re.match(r'R\d{2}-M\d', token):
                     host = token
-                if token in ["KERNEL", "APP", "DISCOVERY"]:
+                if token in ["KERNEL", "APP", "DISCOVERY", "RAS"]:
                     service = token
-            message = rem_line
+            lvl_match = self.RE_LEVEL.search(rem_line)
+            if lvl_match:
+                message = rem_line[lvl_match.end():].strip()
+            else:
+                message = rem_line
+
+        elif dialect == "zookeeper":
+            # 2015-07-29 17:41:41,536 - INFO  [main:QuorumPeerConfig@101] - Reading configuration from: /etc/zookeeper/conf/zoo.cfg
+            match = re.search(r'\[([^\]]+)\]\s*-\s*(.+)$', rem_line)
+            if match:
+                comp_info = match.group(1)
+                message = match.group(2).strip()
+                if ':' in comp_info:
+                    service = comp_info.split(':')[1].split('@')[0]
+                else:
+                    service = comp_info.split('@')[0]
+            else:
+                message = rem_line
+
+        elif dialect == "hadoop":
+            # 2015-10-17 15:37:56,547 INFO [main] org.apache.hadoop.mapreduce.v2.app.MRAppMaster: Created MRAppMaster for application
+            parts = rem_line.split(':', 1)
+            if len(parts) == 2:
+                header, body = parts
+                message = body.strip()
+                tokens = header.split()
+                for token in tokens:
+                    if "org.apache.hadoop" in token or "mapred" in token or "MRAppMaster" in token:
+                        service = token.split('.')[-1]
+            else:
+                message = rem_line
+
+        elif dialect == "spark":
+            # 15/09/01 18:14:40 INFO executor.CoarseGrainedExecutorBackend: Registered signal handlers for [TERM, HUP, INT]
+            parts = rem_line.split(':', 1)
+            if len(parts) == 2:
+                header, body = parts
+                message = body.strip()
+                tokens = header.split()
+                for token in tokens:
+                    if "." in token or "executor" in token or "spark" in token:
+                        service = token.split('.')[-1]
+            else:
+                message = rem_line
 
         # Clean remaining message
         message = re.sub(r'^\s*[-:]+\s*', '', message).strip()

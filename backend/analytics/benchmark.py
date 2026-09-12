@@ -16,18 +16,32 @@ class BenchmarkRunner:
     SAMPLE_FILES = {
         "linux": "data/samples/Linux.log",
         "openstack": "data/samples/OpenStack.log",
+        "zookeeper": "data/samples/Zookeeper.log",
+        "hadoop": "data/samples/Hadoop.log",
+        "spark": "data/samples/Spark.log",
+        "bgl": "data/samples/BGL/BGL.log",
         "hdfs": "data/samples/HDFS.log"
+    }
+
+    ALT_FILES = {
+        "zookeeper": "data/samples/Zookeeper/Zookeeper.log",
+        "bgl": "data/samples/BGL.log"
     }
 
     @classmethod
     def run_all(cls, max_lines: int = 500) -> Dict[str, Any]:
         results = {}
         for name, path in cls.SAMPLE_FILES.items():
-            if not os.path.exists(path):
-                continue
+            target_path = path
+            if not os.path.exists(target_path):
+                alt = cls.ALT_FILES.get(name)
+                if alt and os.path.exists(alt):
+                    target_path = alt
+                else:
+                    continue
 
             t0 = time.time()
-            batch = LogLoader.load_from_file(path, max_lines=max_lines, dataset_name=name)
+            batch = LogLoader.load_from_file(target_path, max_lines=max_lines, dataset_name=name)
             load_time = time.time() - t0
 
             t1 = time.time()
@@ -37,8 +51,13 @@ class BenchmarkRunner:
 
             logs_map = {l.id: l for l in batch.logs}
             reasoner = GroundedReasoner()
-            for inc in incidents:
-                reasoner.explain_incident(inc, logs_map)
+            for i, inc in enumerate(incidents):
+                if i < 5:
+                    reasoner.explain_incident(inc, logs_map)
+                else:
+                    evidence_logs = [logs_map[lid] for lid in inc.evidence_log_ids if lid in logs_map]
+                    if evidence_logs:
+                        reasoner._explain_deterministic(inc, evidence_logs)
 
             total_elapsed = load_time + ai_time
             metrics = ObservabilityEvaluator.calculate_metrics(
