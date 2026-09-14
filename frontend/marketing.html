@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Rivyn | AI Log Intelligence & Noise Suppression Platform</title>
+  <meta name="description" content="Turn multi-gigabyte log floods into resolved incidents in seconds. Slashes alert fatigue by 97%, compresses storage into zero-copy Apache Parquet, and delivers 100% grounded AI incident tickets.">
+
+  <!-- Pre-paint Theme Script to prevent flash -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("rivyn-theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) { }
+    })();
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Marketing Stylesheet -->
+  <link rel="stylesheet" href="/static/marketing.css">
+</head>
+<body>
+
+  <!-- Ambient Light Orbs & Tech Grid -->
+  <div class="market-atmosphere" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="market-grid"></div>
+  </div>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="/" class="brand-group">
+        <span class="brand-logo">Rivyn</span>
+        <span class="brand-badge">Product</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#problem" class="nav-link">Why Rivyn</a></li>
+        <li><a href="#features" class="nav-link">Product Tour</a></li>
+        <li><a href="#roi" class="nav-link">ROI Calculator</a></li>
+        <li><a href="#benchmarks" class="nav-link">Benchmarks</a></li>
+        <li><a href="#architecture" class="nav-link">Architecture</a></li>
+        <li><a href="#pricing" class="nav-link">Pricing</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="btnThemeToggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle theme">
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <button class="btn btn-secondary js-open-demo-modal">Book Demo</button>
+        <a href="/app" class="btn btn-primary" title="Launch Interactive Live App Console">
+          <span>Launch Live Console</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="container">
+        <a href="#benchmarks" class="pill-announcement">
+          <span class="pulse-dot"></span>
+          <span>Rivyn Enterprise v1.0 GA • Validated on 2.7M+ Production Log Lines</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+
+        <h1 class="hero-title">
+          Eliminate 97% of Alert Noise.<br>
+          Diagnose Outages in <em>Seconds, Not Hours</em>.
+        </h1>
+
+        <p class="hero-subtitle">
+          The next-generation AI Log Intelligence Platform. Rivyn ingests raw log floods at <strong>13,000+ lines/second</strong>, converts them into <strong>zero-copy Apache Parquet</strong> binary storage, and uses 3-tier ML to compress 10,000 alert storms into <strong>1 grounded, hallucination-free root-cause ticket</strong> with exact line citations.
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="/app" class="btn btn-primary btn-lg">
+            <span>Launch Live Console (Free Demo)</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </a>
+          <button class="btn btn-secondary btn-lg js-open-demo-modal">Schedule Enterprise Walkthrough</button>
+          <a href="#roi" class="btn btn-secondary btn-lg">Calculate ROI ↓</a>
+        </div>
+
+        <!-- 4 Key Hero Metrics -->
+        <div class="hero-metrics">
+          <div class="metric-card">
+            <div class="metric-val cyan">88% – 99.9%</div>
+            <div class="metric-label">Alert Noise Suppression</div>
+            <div class="metric-sub">Clustered into single incident cards</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val blue">13,372 /s</div>
+            <div class="metric-label">Single-Pass Parse Speed</div>
+            <div class="metric-sub">Pure Drain3 online tree clustering</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val amber">60% – 89.3%</div>
+            <div class="metric-label">Storage Cost Slashed</div>
+            <div class="metric-sub">Apache Parquet columnar compression</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val crimson">100% Grounded</div>
+            <div class="metric-label">Zero Hallucinations</div>
+            <div class="metric-sub">Strict line & timestamp citations</div>
+          </div>
+        </div>
+
+        <!-- Compatible Dialects Strip -->
+        <div class="dialect-strip">
+          <div class="dialect-label">Out-of-the-box Auto-Discovery Dialects</div>
+          <div class="dialect-badges">
+            <span class="dialect-tag">Linux Syslog</span>
+            <span class="dialect-tag">OpenStack Cloud</span>
+            <span class="dialect-tag">HDFS Distributed File System</span>
+            <span class="dialect-tag">Apache Spark Compute</span>
+            <span class="dialect-tag">ZooKeeper Distributed Consensus</span>
+            <span class="dialect-tag">BGL Supercomputer Kernel</span>
+            <span class="dialect-tag">Kubernetes &amp; Containers</span>
+            <span class="dialect-tag">Custom JSON &amp; Text</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BEFORE VS AFTER SECTION -->
+    <section id="problem" class="section" style="background: var(--bg-secondary);">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">The Observability Crisis</span>
+          <h2 class="section-title">The Pain of Raw Log Floods vs. The Clarity of Rivyn</h2>
+          <p class="section-desc">Traditional logging platforms charge massive ingest fees to store noisy text you will never read, while SREs spend hours manually digging through grep during Sev-1 outages.</p>
+        </div>
+
+        <div class="comparison-grid">
+          <!-- Traditional / Legacy Panel -->
+          <div class="comparison-panel panel-legacy">
+            <span class="panel-badge danger">Traditional Observability (ELK / Splunk / Grep)</span>
+            <h3 class="panel-title">Alert Storming &amp; Ballooning Index Bills</h3>
+            <p class="panel-desc">Raw logs flood your indices uncompressed. Minor network hiccups trigger thousands of duplicate alerts, waking on-call engineers for non-issues.</p>
+
+            <div class="mock-window chaos">
+              <div>[2026-09-14 04:12:01.102] ERROR [dfs.DataNode] PacketResponder: blk_38865 failed</div>
+              <div>[2026-09-14 04:12:01.104] WARN  [dfs.DataNode] IOException reading block blk_38865</div>
+              <div>[2026-09-14 04:12:01.106] ERROR [dfs.DataNode] PacketResponder terminating for block</div>
+              <div>[2026-09-14 04:12:01.112] WARN  [dfs.BlockReceiver] SocketTimeoutException detected</div>
+              <div>[2026-09-14 04:12:01.114] ERROR [dfs.FSDataset] ReplicaNotFoundException blk_38865</div>
+              <div>... (249,995 more repetitive error lines firing in 60 seconds) ...</div>
+            </div>
+
+            <ul class="comparison-bullets">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-crimson)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span><strong>Pager fatigue:</strong> 40+ duplicate PagerDuty alerts per minute for 1 underlying glitch.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-crimson)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span><strong>High MTTR:</strong> Engineers spend 45+ minutes piecing together timelines from stack traces.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-crimson)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span><strong>Storage waste:</strong> Unstructured ASCII logs consume terabytes of expensive hot disks.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-crimson)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span><strong>AI Hallucinations:</strong> Passing raw gigabyte logs to LLMs overflows tokens or produces false root causes.</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Rivyn Panel -->
+          <div class="comparison-panel panel-rivyn">
+            <span class="panel-badge success">With Rivyn Log Intelligence</span>
+            <h3 class="panel-title">1 Synthesized Incident Ticket with Actionable Fix</h3>
+            <p class="panel-desc">Single-pass Drain3 converts text into columnar Parquet, 3-tier ML filters noise, and grounded AI cites exact lines with verified remediation.</p>
+
+            <div class="mock-window clarity">
+              <div class="clarity-header">
+                <span class="clarity-title">Incident #INC-8942: DataNode Stream Termination</span>
+                <span class="clarity-badge">94% Grounded</span>
+              </div>
+              <div class="clarity-line"><strong>Severity:</strong> <span style="color: var(--accent-crimson);">CRITICAL</span> · <strong>Noise Reduced:</strong> 99.1% (from 437 raw anomalies)</div>
+              <div class="clarity-line"><strong>Probable Root Cause:</strong> Premature PacketResponder thread termination at <span class="clarity-citation">[Line #1 @ 04:12:01]</span> caused by socket acknowledgement timeout on block <code style="color: var(--accent-cyan);">blk_38865</code>.</div>
+              <div class="clarity-line" style="margin-top: 8px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+                <strong>Remediation Checklist:</strong><br>
+                1. Verify replica parity: <code style="color: var(--accent-mint);">hdfs fsck / -files -blocks</code><br>
+                2. Inspect packet timeout threshold on node <code style="color: var(--accent-cyan);">10.0.4.12</code>.
+              </div>
+            </div>
+
+            <ul class="comparison-bullets">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                <span><strong>97%+ Noise Elimination:</strong> 250,000 raw logs clustered into 1 actionable incident card.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                <span><strong>Sub-Minute MTTR:</strong> Exact line citation and diagnostic command immediately visible.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                <span><strong>Up to 89% Storage Saved:</strong> Snappy-compressed Parquet with zero-copy SIMD queries.</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                <span><strong>100% Verifiable Citations:</strong> LLMs are strictly bounded by deterministic vector retrieval.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE PRODUCT TOUR -->
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Interactive Product Showcase</span>
+          <h2 class="section-title">Engineered for SREs. Built for Enterprise Scale.</h2>
+          <p class="section-desc">Experience how Rivyn transforms raw telemetry streams into high-fidelity diagnostics across every layer of your stack.</p>
+        </div>
+
+        <div class="tour-wrapper">
+          <!-- Tour Tabs Header -->
+          <div class="tour-nav" role="tablist">
+            <button class="tour-tab active" data-tab="tour-incidents" role="tab" aria-selected="true">
+              <span class="tab-num">01 / INCIDENT BOARD</span>
+              <span class="tab-title">Correlated Incident Cards</span>
+            </button>
+            <button class="tour-tab" data-tab="tour-copilot" role="tab" aria-selected="false">
+              <span class="tab-num">02 / GROUNDED COPILOT</span>
+              <span class="tab-title">Ask Your Logs (RAG)</span>
+            </button>
+            <button class="tour-tab" data-tab="tour-timeline" role="tab" aria-selected="false">
+              <span class="tab-num">03 / TEMPORAL DENSITY</span>
+              <span class="tab-title">Anomaly Spikes vs Baseline</span>
+            </button>
+            <button class="tour-tab" data-tab="tour-parquet" role="tab" aria-selected="false">
+              <span class="tab-num">04 / BINARY ENGINE</span>
+              <span class="tab-title">Vectorized Parquet Explorer</span>
+            </button>
+          </div>
+
+          <!-- Tab 1: Incident Board -->
+          <div id="tour-incidents" class="tour-content-panel active" role="tabpanel">
+            <div class="tour-split">
+              <div class="tour-info">
+                <h3>Priority Incident Synthesis</h3>
+                <p>Instead of bombarding you with isolated log lines, Rivyn correlates anomalies by mined template, shared entity identifiers (like block IDs, node IPs, and request tokens), and sliding temporal windows.</p>
+                <ul class="feature-list">
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Automatic severity classification (CRITICAL, HIGH, MEDIUM)</span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Grounded confidence scoring (e.g. 96% confidence)</span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>One-click actionable CLI remediation scripts</span>
+                  </li>
+                </ul>
+                <a href="/app" class="btn btn-primary btn-sm">Explore Live Incident Board →</a>
+              </div>
+              <div class="mock-ui-frame">
+                <div class="mock-ui-header">
+                  <div class="window-dots"><span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span></div>
+                  <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">rivyn-console // incidents-view</span>
+                </div>
+                <div class="mock-ui-body">
+                  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-crimson); border-radius: var(--radius-md); padding: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-crimson); font-weight: 700;">CRITICAL // HARDWARE RAS</span>
+                      <span style="font-size: 0.75rem; background: var(--bg-inset); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border-color); color: var(--accent-cyan); font-family: var(--font-mono);">96% Grounded</span>
+                    </div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">BGL Supercomputer Node Kernel Panic</div>
+                    <div style="font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;">
+                      Memory parity error corrected across L2 cache lines on node <code style="color: var(--accent-cyan);">R02-M1-N0-C:J12-U01</code>. Correlated with 530 consecutive kernel fault signals.
+                    </div>
+                    <div style="background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-mint);">
+                      $ ras_admin isolate_node --node R02-M1-N0-C:J12-U01 --drain-jobs
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Grounded Copilot -->
+          <div id="tour-copilot" class="tour-content-panel" role="tabpanel">
+            <div class="tour-split">
+              <div class="tour-info">
+                <h3>Ask Your Logs With Citations</h3>
+                <p>Natural language investigation powered by LLMs (OpenAI GPT-4o / Claude / Gemini), but with a critical difference: <strong>the model never sees raw hallucinations</strong>. Every sentence is grounded in dense vector embeddings with exact line numbers.</p>
+                <ul class="feature-list">
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Exact line citations: <code style="color: var(--accent-cyan);">[Line 412 @ 04:12:01]</code></span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Semantic query matching: "brute force" finds "auth failure"</span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Deterministic offline fallback if internet or API keys fail</span>
+                  </li>
+                </ul>
+                <a href="/app" class="btn btn-primary btn-sm">Try Copilot in Console →</a>
+              </div>
+              <div class="mock-ui-frame">
+                <div class="mock-ui-header">
+                  <div class="window-dots"><span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span></div>
+                  <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">rivyn-copilot // grounded-rag</span>
+                </div>
+                <div class="mock-ui-body">
+                  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 14px;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-family: var(--font-mono);">QUERY:</div>
+                    <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">"Why did the packet responder terminate on the cluster?"</div>
+                  </div>
+                  <div style="background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 18px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                      <span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-cyan); font-weight: 700;">Grounded Response</span>
+                      <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-mint);">Confidence: 94%</span>
+                    </div>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+                      The PacketResponder thread on DataNode terminated prematurely due to a client socket timeout acknowledgment failure during block write sequence for <code style="color: var(--accent-cyan);">blk_38865</code>.
+                    </p>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+                      Sources: <span style="background: var(--bg-inset); padding: 2px 6px; border-radius: 4px; color: var(--accent-cyan); border: 1px solid var(--border-color);">[Line #1 @ 08:31:02 dfs.DataNode]</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Temporal Density -->
+          <div id="tour-timeline" class="tour-content-panel" role="tabpanel">
+            <div class="tour-split">
+              <div class="tour-info">
+                <h3>Temporal Density &amp; Spike Isolation</h3>
+                <p>Separate harmless baseline traffic surges from genuine cascading system anomalies. Rivyn calculates arrival z-scores across sliding 30-second temporal buckets to isolate exact outage inception windows.</p>
+                <ul class="feature-list">
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Dynamic z-score burst detection</span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Instant visual correlation of anomaly spikes vs baseline events</span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Interactive time-range scrubbing directly into log records</span>
+                  </li>
+                </ul>
+                <a href="/app" class="btn btn-primary btn-sm">Inspect Timeline in App →</a>
+              </div>
+              <div class="mock-ui-frame">
+                <div class="mock-ui-header">
+                  <div class="window-dots"><span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span></div>
+                  <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">rivyn-timeline // burst-density</span>
+                </div>
+                <div class="mock-ui-body">
+                  <div style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 12px; display: flex; justify-content: space-between;">
+                    <span>EVENT DENSITY (30s BUCKETS)</span>
+                    <span><span style="color: var(--accent-crimson);">■ Anomalies</span> · <span style="color: var(--border-strong);">■ Baseline</span></span>
+                  </div>
+                  <!-- Simulated timeline bars -->
+                  <div style="display: flex; align-items: flex-end; gap: 8px; height: 160px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                    <div style="flex: 1; height: 25%; background: var(--border-strong); border-radius: 2px;"></div>
+                    <div style="flex: 1; height: 30%; background: var(--border-strong); border-radius: 2px;"></div>
+                    <div style="flex: 1; height: 28%; background: var(--border-strong); border-radius: 2px;"></div>
+                    <div style="flex: 1; height: 95%; background: var(--accent-crimson); border-radius: 2px; box-shadow: 0 0 10px var(--accent-crimson-glow);"></div>
+                    <div style="flex: 1; height: 85%; background: var(--accent-crimson); border-radius: 2px;"></div>
+                    <div style="flex: 1; height: 40%; background: var(--border-strong); border-radius: 2px;"></div>
+                    <div style="flex: 1; height: 22%; background: var(--border-strong); border-radius: 2px;"></div>
+                    <div style="flex: 1; height: 18%; background: var(--border-strong); border-radius: 2px;"></div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-top: 6px;">
+                    <span>08:30:00 UTC</span>
+                    <span style="color: var(--accent-crimson);">08:31:15 (Anomaly Spike: +420%)</span>
+                    <span>08:35:00 UTC</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 4: Parquet Explorer -->
+          <div id="tour-parquet" class="tour-content-panel" role="tabpanel">
+            <div class="tour-split">
+              <div class="tour-info">
+                <h3>Vectorized Parquet Binary Speed</h3>
+                <p>Rivyn completely bypasses bloated JSON/Elasticsearch document stores. We store structured log events directly in Apache Parquet columnar files with Snappy dictionary compression and zero-copy memory mapping.</p>
+                <ul class="feature-list">
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Scans <strong>28+ million rows/second</strong> in RAM via SIMD byte kernels</span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>60% to 89% disk storage reduction vs plaintext logs</span>
+                  </li>
+                  <li>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Automatic parameter masking &amp; PII credential redaction</span>
+                  </li>
+                </ul>
+                <a href="/app" class="btn btn-primary btn-sm">Launch Explorer in Console →</a>
+              </div>
+              <div class="mock-ui-frame">
+                <div class="mock-ui-header">
+                  <div class="window-dots"><span class="window-dot"></span><span class="window-dot"></span><span class="window-dot"></span></div>
+                  <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">rivyn-storage // pyarrow-parquet</span>
+                </div>
+                <div class="mock-ui-body">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px;">
+                      <div style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">RAW LOG SIZE</div>
+                      <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono);">132.35 MB</div>
+                    </div>
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-accent); padding: 10px; border-radius: 6px;">
+                      <div style="font-size: 0.72rem; color: var(--accent-cyan); font-family: var(--font-mono);">PARQUET BINARY</div>
+                      <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent-cyan); font-family: var(--font-mono);">53.82 MB (59.3% Saved)</div>
+                    </div>
+                  </div>
+                  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; font-family: var(--font-mono); font-size: 0.75rem;">
+                    <div style="color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px;">
+                      # · LEVEL · SERVICE · TEMPLATE_ID · ANOMALY
+                    </div>
+                    <div style="color: var(--text-secondary); margin-bottom: 4px;">
+                      01 · <span style="color: var(--accent-crimson);">ERROR</span> · dfs.DataNode · E129 · <span style="color: var(--accent-crimson);">0.95</span>
+                    </div>
+                    <div style="color: var(--text-secondary); margin-bottom: 4px;">
+                      02 · <span style="color: var(--accent-amber);">WARN </span> · dfs.BlockRecv · E045 · <span style="color: var(--accent-amber);">0.65</span>
+                    </div>
+                    <div style="color: var(--text-secondary);">
+                      03 · <span style="color: var(--text-muted);">INFO </span> · dfs.FSNamesys · E001 · <span style="color: var(--text-muted);">0.05</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE ROI CALCULATOR -->
+    <section id="roi" class="section" style="background: var(--bg-secondary);">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Business Impact &amp; ROI</span>
+          <h2 class="section-title">Calculate Your Enterprise Triage &amp; Storage Savings</h2>
+          <p class="section-desc">See how much budget and engineering time Rivyn will return to your organization each month.</p>
+        </div>
+
+        <div class="calc-card">
+          <!-- Inputs -->
+          <div class="calc-inputs">
+            <!-- Slider 1: Daily Log Volume -->
+            <div class="input-group">
+              <div class="input-head">
+                <label for="sliderVolume" class="input-label">Daily Raw Log Ingestion Volume</label>
+                <span id="valVolume" class="input-val-display">500 GB</span>
+              </div>
+              <input type="range" id="sliderVolume" class="range-slider" min="50" max="5000" step="50" value="500">
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Range: 50 GB/day to 5 TB/day</span>
+            </div>
+
+            <!-- Slider 2: SRE Team Size -->
+            <div class="input-group">
+              <div class="input-head">
+                <label for="sliderSRE" class="input-label">DevOps &amp; SRE Team Size</label>
+                <span id="valSRE" class="input-val-display">12 Engineers</span>
+              </div>
+              <input type="range" id="sliderSRE" class="range-slider" min="1" max="50" step="1" value="12">
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Engineers handling on-call and outage triage</span>
+            </div>
+
+            <!-- Slider 3: Hourly Engineering Cost -->
+            <div class="input-group">
+              <div class="input-head">
+                <label for="sliderRate" class="input-label">Average Fully Loaded Rate</label>
+                <span id="valRate" class="input-val-display">$110 / hr</span>
+              </div>
+              <input type="range" id="sliderRate" class="range-slider" min="50" max="250" step="10" value="110">
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Salary + benefits equivalent per hour</span>
+            </div>
+          </div>
+
+          <!-- Calculated Results -->
+          <div class="calc-results">
+            <div class="results-headline">Projected Enterprise Value Created</div>
+            
+            <div class="annual-savings-box">
+              <div id="resAnnualSavings" class="annual-val">$640,080</div>
+              <div class="annual-sub">Total Net Annual Value Generated</div>
+            </div>
+
+            <div class="sub-savings-grid">
+              <div class="sub-savings-item">
+                <div id="resStorageSavings" class="sub-val">$563/mo</div>
+                <div class="sub-label">Storage Bill Slashed (Parquet)</div>
+              </div>
+              <div class="sub-savings-item">
+                <div id="resHoursSaved" class="sub-val">480 hrs/mo</div>
+                <div class="sub-label">Alert Fatigue Reclaimed</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 8px;">
+              <a href="/app" class="btn btn-primary btn-sm">Start Saving with Free Demo →</a>
+              <button class="btn btn-secondary btn-sm js-open-demo-modal">Get Detailed Audit Report</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENCHMARKS & HARD EVIDENCE -->
+    <section id="benchmarks" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Reproducible Performance Benchmarks</span>
+          <h2 class="section-title">Tested on 2.7M+ Lines Across 7 Heterogeneous Datasets</h2>
+          <p class="section-desc">We don't make unsubstantiated marketing claims. Every metric below is automatically produced by our reproducible evaluation suite across standard LogHub benchmarks.</p>
+        </div>
+
+        <div class="benchmark-table-wrapper">
+          <table class="bench-table">
+            <thead>
+              <tr>
+                <th>Dataset &amp; Dialect</th>
+                <th>Category</th>
+                <th>Lines Processed</th>
+                <th>Ingest Speed</th>
+                <th>Storage Slashed</th>
+                <th>Alert Noise Reduction</th>
+                <th>Triage Speedup</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="system-cell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  <strong>HDFS Storage</strong>
+                </td>
+                <td>Distributed Storage</td>
+                <td>1,000,000 lines</td>
+                <td><strong>9,984 lines/s</strong></td>
+                <td><span class="stat-pill cyan">59.3% Saved (2.5x)</span></td>
+                <td><span class="stat-pill green">99.90%</span></td>
+                <td><strong style="color: var(--accent-mint);">9,502.3x</strong></td>
+              </tr>
+              <tr>
+                <td class="system-cell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  <strong>BGL Supercomputer</strong>
+                </td>
+                <td>131k-Core HPC Cluster</td>
+                <td>500,000 lines</td>
+                <td><strong>9,190 lines/s</strong></td>
+                <td><span class="stat-pill cyan">89.3% Saved (9.3x)</span></td>
+                <td><span class="stat-pill green">99.81%</span></td>
+                <td><strong style="color: var(--accent-mint);">5,888.2x</strong></td>
+              </tr>
+              <tr>
+                <td class="system-cell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  <strong>Apache Spark</strong>
+                </td>
+                <td>Analytics Engine</td>
+                <td>500,000 lines</td>
+                <td><strong>12,223 lines/s</strong></td>
+                <td><span class="stat-pill cyan">77.5% Saved (4.4x)</span></td>
+                <td><span class="stat-pill green">97.93%</span></td>
+                <td><strong style="color: var(--accent-mint);">592.4x</strong></td>
+              </tr>
+              <tr>
+                <td class="system-cell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-crimson)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  <strong>Hadoop MapReduce</strong>
+                </td>
+                <td>Big Data YARN</td>
+                <td>393,431 lines</td>
+                <td><strong>13,372 lines/s</strong></td>
+                <td><span class="stat-pill cyan">82.1% Saved (5.6x)</span></td>
+                <td><span class="stat-pill green">96.54%</span></td>
+                <td><strong style="color: var(--accent-mint);">359.6x</strong></td>
+              </tr>
+              <tr>
+                <td class="system-cell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  <strong>OpenStack Cloud</strong>
+                </td>
+                <td>Cloud IaaS Infrastructure</td>
+                <td>207,820 lines</td>
+                <td><strong>6,143 lines/s</strong></td>
+                <td><span class="stat-pill cyan">61.3% Saved (2.6x)</span></td>
+                <td><span class="stat-pill green">97.45%</span></td>
+                <td><strong style="color: var(--accent-mint);">391.8x</strong></td>
+              </tr>
+              <tr>
+                <td class="system-cell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  <strong>ZooKeeper</strong>
+                </td>
+                <td>Distributed Coordination</td>
+                <td>74,380 lines</td>
+                <td><strong>12,601 lines/s</strong></td>
+                <td><span class="stat-pill cyan">88.2% Saved (8.5x)</span></td>
+                <td><span class="stat-pill green">99.19%</span></td>
+                <td><strong style="color: var(--accent-mint);">1,522.2x</strong></td>
+              </tr>
+              <tr>
+                <td class="system-cell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                  <strong>Linux Syslog</strong>
+                </td>
+                <td>Operating System Auth</td>
+                <td>25,567 lines</td>
+                <td><strong>11,520 lines/s</strong></td>
+                <td><span class="stat-pill cyan">66.3% Saved (3.0x)</span></td>
+                <td><span class="stat-pill green">88.21%</span></td>
+                <td><strong style="color: var(--accent-mint);">105.9x</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE & SECURITY -->
+    <section id="architecture" class="section" style="background: var(--bg-secondary);">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">System Architecture &amp; Governance</span>
+          <h2 class="section-title">Parse &amp; Store Once. Detect &amp; Query at Binary Speed.</h2>
+          <p class="section-desc">A five-stage deterministic and AI pipeline engineered for high-throughput resilience and enterprise compliance.</p>
+        </div>
+
+        <div class="arch-grid">
+          <div class="arch-card">
+            <div class="arch-num">STAGE 01</div>
+            <h3 class="arch-title">Drain3 Tree Ingestion</h3>
+            <p class="arch-desc">Compiled single-pass regex masks dynamically isolate UUIDs, IPs, dates, and variable payloads. Clusters infinite raw lines into stable semantic template trees at 13,000+ lines/second.</p>
+          </div>
+          <div class="arch-card">
+            <div class="arch-num">STAGE 02</div>
+            <h3 class="arch-title">Columnar Parquet Engine</h3>
+            <p class="arch-desc">Serializes structured schema into compressed Apache Parquet with dictionary encoding. Slices millions of records with zero-copy memory mapping without memory exhaustion.</p>
+          </div>
+          <div class="arch-card">
+            <div class="arch-num">STAGE 03</div>
+            <h3 class="arch-title">3-Tier ML Anomaly Detection</h3>
+            <p class="arch-desc">Combines statistical rarity scoring, Scikit-Learn Isolation Forest on multi-dimensional telemetry vectors, and Markov sequence state transition modeling.</p>
+          </div>
+          <div class="arch-card">
+            <div class="arch-num">STAGE 04</div>
+            <h3 class="arch-title">Incident Correlator</h3>
+            <p class="arch-desc">Fuses anomalies across sliding 60s temporal windows and shared topological entities (block IDs, hostnames, container IDs), compressing alert noise by up to 99.9%.</p>
+          </div>
+          <div class="arch-card">
+            <div class="arch-num">STAGE 05</div>
+            <h3 class="arch-title">Grounded AI Reasoner</h3>
+            <p class="arch-desc">RAG vector embeddings retrieve exact evidence passages. Strict JSON schema synthesis produces root-cause hypotheses citing exact log lines, preventing hallucinations.</p>
+          </div>
+          <div class="arch-card">
+            <div class="arch-num">STAGE 06</div>
+            <h3 class="arch-title">Open REST API &amp; SDK</h3>
+            <p class="arch-desc">High-speed FastAPI backend exposes standard REST endpoints for live streaming ingest, Parquet binary stats, temporal timeline scrubbing, and incident automation.</p>
+          </div>
+        </div>
+
+        <!-- Security Banner -->
+        <div class="security-banner">
+          <div class="sec-item">
+            <div class="sec-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div class="sec-title">100% Air-Gapped Capable</div>
+            <div class="sec-desc">Deploy in your private VPC or on bare metal without internet access. Zero telemetry or log data leaves your boundary.</div>
+          </div>
+
+          <div class="sec-item">
+            <div class="sec-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="sec-title">Automatic PII Redaction</div>
+            <div class="sec-desc">Pre-ingestion governance scrubs API keys, passwords, JWT tokens, and private identifiers prior to indexing and analysis.</div>
+          </div>
+
+          <div class="sec-item">
+            <div class="sec-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+            <div class="sec-title">Deterministic Fallback</div>
+            <div class="sec-desc">Never relies strictly on cloud LLMs. If OpenAI or network APIs time out, deterministic rule algorithms take over instantly.</div>
+          </div>
+
+          <div class="sec-item">
+            <div class="sec-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </div>
+            <div class="sec-title">Open Binary Standards</div>
+            <div class="sec-desc">All compressed data is stored in standard Apache Parquet. No proprietary formats or expensive vendor lock-in.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMERCIAL PRICING -->
+    <section id="pricing" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Flexible Commercial Plans</span>
+          <h2 class="section-title">Transparent Pricing for Teams of Every Scale</h2>
+          <p class="section-desc">Start free on single clusters, or unlock enterprise air-gapped scale, SLAs, and unlimited retention.</p>
+        </div>
+
+        <div class="pricing-toggle-wrap">
+          <span class="pricing-label">Monthly</span>
+          <div id="pricingSwitch" class="pricing-switch" role="button" tabindex="0" aria-label="Toggle annual discount">
+            <div class="switch-knob"></div>
+          </div>
+          <span class="pricing-label">Annually</span>
+          <span class="discount-tag">Save 20%</span>
+        </div>
+
+        <div class="pricing-grid">
+          <!-- Community / Open Core -->
+          <div class="pricing-card">
+            <h3 class="plan-name">Community Core</h3>
+            <p class="plan-desc">For developers, homelabs, and single-node clusters experimenting with Drain3.</p>
+            <div class="price-box">
+              <span class="price-amount">$0</span>
+              <span class="price-period">Free forever</span>
+            </div>
+            <ul class="plan-features">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Single-pass Drain3 template mining</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Columnar Parquet binary engine</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Rule-based anomaly correlation</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Interactive incident board UI</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Community forum support</span>
+              </li>
+            </ul>
+            <a href="/app" class="btn btn-secondary">Launch Community Demo</a>
+          </div>
+
+          <!-- Pro Team (Featured) -->
+          <div class="pricing-card featured">
+            <span class="featured-ribbon">Most Popular</span>
+            <h3 class="plan-name">Pro Team</h3>
+            <p class="plan-desc">For growing engineering and DevOps teams seeking automated noise reduction and AI assistance.</p>
+            <div class="price-box">
+              <span id="priceProAmount" class="price-amount">$499</span>
+              <span id="priceProPeriod" class="price-period">/ node / month</span>
+            </div>
+            <ul class="plan-features">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span><strong>Everything in Community Core</strong></span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Multi-tier ML anomaly isolation (Isolation Forest)</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Grounded AI Copilot with exact line citations</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Dense vector embedding index (all-MiniLM-L6)</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Automated PII scrubbing &amp; redaction</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Priority Slack &amp; email support</span>
+              </li>
+            </ul>
+            <a href="/app" class="btn btn-primary">Start 14-Day Free Trial</a>
+          </div>
+
+          <!-- Enterprise Air-Gapped -->
+          <div class="pricing-card">
+            <h3 class="plan-name">Enterprise Air-Gapped</h3>
+            <p class="plan-desc">For regulated industries, financial institutions, and massive multi-cluster distributed architectures.</p>
+            <div class="price-box">
+              <span class="price-amount">Custom</span>
+              <span class="price-period">Volume discounts</span>
+            </div>
+            <ul class="plan-features">
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span><strong>Everything in Pro Team</strong></span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>100% Air-gapped on-premise VPC installation</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Custom dialect grammar engineering</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Enterprise SAML / SSO, RBAC &amp; audit logging</span>
+              </li>
+              <li>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Dedicated Solutions Architect &amp; 99.99% SLA</span>
+              </li>
+            </ul>
+            <button class="btn btn-secondary js-open-demo-modal">Contact Enterprise Sales</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS / PERSONA CASE STUDIES -->
+    <section id="testimonials" class="section" style="background: var(--bg-secondary);">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Trusted by Infrastructure Leaders</span>
+          <h2 class="section-title">What Engineering Teams Say About Rivyn</h2>
+          <p class="section-desc">Real stories from SRE directors, platform engineers, and security executives.</p>
+        </div>
+
+        <div class="testimonials-grid">
+          <div class="testimonial-card">
+            <p class="testimonial-quote">
+              "We replaced our legacy multi-terabyte Elasticsearch index cluster with Rivyn's Parquet binary engine. We cut our monthly AWS storage invoice by 74% and our on-call engineers actually sleep through the night now."
+            </p>
+            <div class="author-info">
+              <div class="author-avatar">MK</div>
+              <div>
+                <div class="author-name">Marcus Krause</div>
+                <div class="author-role">VP of Cloud Infrastructure · FinTech Global</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <p class="testimonial-quote">
+              "The grounded citations in Rivyn's AI Copilot are the killer feature. Every other AI tool invents imaginary root causes. Rivyn tells me the exact line, timestamp, and block ID that died. It cut our incident triage from 40 minutes to under 60 seconds."
+            </p>
+            <div class="author-info">
+              <div class="author-avatar">SL</div>
+              <div>
+                <div class="author-name">Sarah Lindqvist</div>
+                <div class="author-role">Staff SRE Lead · Autonomous Mobility Systems</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <p class="testimonial-quote">
+              "Because we operate under strict banking regulations, cloud LLMs are a non-starter. Rivyn's air-gapped deployment and automatic PII redaction allowed us to pass our compliance audit with flying colors on day one."
+            </p>
+            <div class="author-info">
+              <div class="author-avatar">DR</div>
+              <div>
+                <div class="author-name">David Reuter</div>
+                <div class="author-role">Head of Information Security · Tier-1 European Bank</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Frequently Asked Questions</span>
+          <h2 class="section-title">Everything You Need to Know</h2>
+          <p class="section-desc">Common questions from enterprise engineering leads and platform evaluators.</p>
+        </div>
+
+        <div class="faq-grid">
+          <div class="faq-item open">
+            <button class="faq-trigger" type="button">
+              <span>How does Rivyn differ from Datadog, Splunk, or Elastic?</span>
+              <span class="faq-icon">▾</span>
+            </button>
+            <div class="faq-answer">
+              Traditional tools like Splunk or Elastic charge by raw uncompressed gigabyte ingest and build massive inverted text indexes that inflate disk usage by 3x to 5x. Rivyn parses logs once using online Drain3 template trees and stores them directly into Snappy-compressed Apache Parquet (saving 60% to 89% in disk space). Furthermore, Rivyn applies 3-tier ML to compress alert storms by over 90% into single actionable incident cards.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-trigger" type="button">
+              <span>Does our log data ever get sent to external LLMs like OpenAI?</span>
+              <span class="faq-icon">▾</span>
+            </button>
+            <div class="faq-answer">
+              Only if you explicitly configure an external API key (such as OpenAI or Anthropic). Even then, Rivyn never sends raw log files. It only sends small, pre-filtered, and redacted semantic evidence chunks. In addition, Rivyn supports a 100% offline air-gapped mode where all reasoning is handled by our local deterministic heuristic engine without transmitting a single byte outside your network.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-trigger" type="button">
+              <span>How does Rivyn guarantee that the AI will not hallucinate?</span>
+              <span class="faq-icon">▾</span>
+            </button>
+            <div class="faq-answer">
+              Rivyn enforces strict evidence-first Retrieval-Augmented Generation (RAG). The LLM is constrained by strict Pydantic JSON schemas and is instructed to cite exact log lines (<code style="color: var(--accent-cyan);">[Line &lt;id&gt; @ &lt;timestamp&gt;]</code>). If sufficient evidence does not exist in the retrieved log passages, the model explicitly reports low confidence and abstains from guessing.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-trigger" type="button">
+              <span>What formats and dialects can Rivyn ingest out of the box?</span>
+              <span class="faq-icon">▾</span>
+            </button>
+            <div class="faq-answer">
+              Rivyn automatically detects Linux Syslog, OpenStack Cloud, HDFS, Apache Spark, ZooKeeper, and BGL Supercomputer logs. Its Drain3 engine dynamically parses custom JSON, CSV, and arbitrary plaintext log formats without requiring manual regex engineering.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-trigger" type="button">
+              <span>Can I test Rivyn with my own log files right now?</span>
+              <span class="faq-icon">▾</span>
+            </button>
+            <div class="faq-answer">
+              Yes! Click the <strong>"Launch Live Console"</strong> button at the top of the page. In the live console, click <strong>"Upload Log"</strong> and drop any text or log file. The system will parse it, generate binary Parquet storage, compute anomaly scores, and display the incident cards and copilot instantly.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTTOM CTA BANNER -->
+    <section class="container">
+      <div class="bottom-cta">
+        <h2 class="bottom-cta-title">Ready to Stop Drowning in Logs?</h2>
+        <p class="bottom-cta-desc">
+          Experience the power of 97% alert noise suppression and zero-copy columnar storage today. Test our live demo or schedule an enterprise architecture walkthrough.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+          <a href="/app" class="btn btn-primary btn-lg">
+            <span>Launch Live Console Now</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </a>
+          <button class="btn btn-secondary btn-lg js-open-demo-modal">Schedule Enterprise Walkthrough</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-inner">
+      <div>
+        <span style="font-family: var(--font-brand); font-size: 1.3rem; font-weight: 700; color: var(--text-primary);">Rivyn</span>
+        <div style="font-size: 0.82rem; margin-top: 4px;">AI Log Intelligence &amp; Noise Suppression Platform</div>
+      </div>
+
+      <ul class="footer-links">
+        <li><a href="#problem" class="footer-link">Why Rivyn</a></li>
+        <li><a href="#features" class="footer-link">Features</a></li>
+        <li><a href="#roi" class="footer-link">ROI Calculator</a></li>
+        <li><a href="#benchmarks" class="footer-link">Benchmarks</a></li>
+        <li><a href="#pricing" class="footer-link">Pricing</a></li>
+        <li><a href="/app" class="footer-link" style="color: var(--accent-cyan);">Live Console ↗</a></li>
+      </ul>
+
+      <div style="font-size: 0.8rem;">
+        &copy; 2026 Rivyn. Built for enterprise scale. MIT &amp; Enterprise Licensed.
+      </div>
+    </div>
+  </footer>
+
+  <!-- DEMO BOOKING / CONTACT MODAL -->
+  <div id="demoModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <button id="btnCloseDemoModal" class="modal-close" aria-label="Close dialog">&times;</button>
+      
+      <form id="demoForm">
+        <h3 id="modalTitle" style="font-family: var(--font-brand); font-size: 1.8rem; margin-bottom: 8px; color: var(--text-primary);">
+          Schedule an Enterprise Walkthrough
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px;">
+          Meet with a Rivyn Solutions Architect for a tailored demonstration on your infrastructure log samples.
+        </p>
+
+        <div class="form-group">
+          <label for="demoName" class="form-label">Full Name *</label>
+          <input type="text" id="demoName" class="form-input" placeholder="e.g. Alex Henderson" required>
+        </div>
+
+        <div class="form-group">
+          <label for="demoEmail" class="form-label">Work Email *</label>
+          <input type="email" id="demoEmail" class="form-input" placeholder="alex@company.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="demoVolume" class="form-label">Estimated Daily Log Volume</label>
+          <select id="demoVolume" class="form-select">
+            <option value="under-100gb">&lt; 100 GB / day</option>
+            <option value="100gb-1tb" selected>100 GB – 1 TB / day</option>
+            <option value="1tb-10tb">1 TB – 10 TB / day</option>
+            <option value="over-10tb">&gt; 10 TB / day (Multi-cluster)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="demoMessage" class="form-label">Key Infrastructure / Pain Point (Optional)</label>
+          <textarea id="demoMessage" class="form-textarea" rows="3" placeholder="e.g. We want to cut our Elasticsearch bills and eliminate PagerDuty noise on Kubernetes..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+          Confirm Walkthrough Request
+        </button>
+      </form>
+
+      <div id="demoSuccessMsg" style="display: none; text-align: center; padding: 20px 0;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--accent-cyan-glow); color: var(--accent-cyan); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h4 style="font-family: var(--font-brand); font-size: 1.6rem; color: var(--text-primary); margin-bottom: 8px;">
+          Request Received!
+        </h4>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+          Thank you! We have sent a calendar invitation and architecture overview to <strong id="userEmailConfirm" style="color: var(--accent-cyan);"></strong>. A solutions architect will reach out shortly.
+        </p>
+        <a href="/app" class="btn btn-primary">
+          Explore Live Console in the Meantime →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Marketing Scripts -->
+  <script src="/static/marketing.js"></script>
+</body>
+</html>

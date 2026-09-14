@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rivyn: Comprehensive Product Architecture, Engineering Milestones & Talent Acquisition Guide</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    @page {
+      size: A4;
+      margin: 15mm 16mm 15mm 16mm;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Amiri', 'Times New Roman', Georgia, serif;
+      font-size: 10pt;
+      line-height: 1.5;
+      color: #14120f;
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Page container */
+    .doc-page {
+      page-break-after: always;
+      break-after: page;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 266mm;
+      max-height: 268mm;
+      overflow: hidden;
+      padding: 0;
+      position: relative;
+    }
+
+    .doc-page:last-child {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .doc-content {
+      flex: 1;
+    }
+
+    /* Running Header & Footer */
+    .doc-running-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 0.8pt solid #0f766e;
+      padding-bottom: 4px;
+      margin-bottom: 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 8pt;
+      color: #585046;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .doc-running-header strong {
+      color: #0f766e;
+      font-weight: 700;
+    }
+
+    .doc-running-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 0.6pt solid #cec3b3;
+      padding-top: 5px;
+      margin-top: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 7.8pt;
+      color: #796e62;
+    }
+
+    /* Title Block */
+    .title-block {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    h1.doc-title {
+      font-family: 'Amiri', Georgia, serif;
+      font-size: 21pt;
+      font-weight: 700;
+      color: #14120f;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px 0;
+      line-height: 1.15;
+    }
+
+    .doc-subtitle {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11pt;
+      font-weight: 600;
+      color: #0f766e;
+      letter-spacing: 0.02em;
+      margin-bottom: 6px;
+    }
+
+    .doc-meta {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 8.5pt;
+      color: #6e6459;
+    }
+
+    /* Quote */
+    .epigraph {
+      margin: 10px auto 14px auto;
+      max-width: 95%;
+      font-style: italic;
+      color: #3e3830;
+      text-align: center;
+      font-size: 9.2pt;
+      line-height: 1.42;
+      padding: 6px 14px;
+      border-left: 2.5pt solid #0f766e;
+      border-right: 2.5pt solid #0f766e;
+      background: #faf8f5;
+    }
+
+    /* Callout Boxes */
+    .callout-box {
+      background: #fbf9f6;
+      border: 1pt solid #0f766e;
+      border-radius: 4pt;
+      margin: 14px 0;
+      overflow: hidden;
+      box-shadow: 0 1pt 3pt rgba(15, 118, 110, 0.08);
+    }
+
+    .callout-title {
+      background: #0f766e;
+      color: #ffffff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 8.8pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+    }
+
+    .callout-body {
+      padding: 10px 14px;
+      font-size: 9.4pt;
+      line-height: 1.48;
+      color: #27221c;
+    }
+
+    /* Section Headings */
+    h2.section-heading {
+      font-family: 'Amiri', Georgia, serif;
+      font-size: 13.5pt;
+      font-weight: 700;
+      color: #14120f;
+      border-bottom: 0.8pt solid #14120f;
+      padding-bottom: 2px;
+      margin-top: 14px;
+      margin-bottom: 8px;
+    }
+
+    h3.subsection-heading {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10.2pt;
+      font-weight: 700;
+      color: #0f766e;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+
+    p {
+      margin: 0 0 8px 0;
+      text-align: justify;
+    }
+
+    ol, ul {
+      margin: 4px 0 10px 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 4px;
+      text-align: justify;
+    }
+
+    /* Code */
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5pt;
+    }
+
+    code {
+      background: #f2eee8;
+      color: #0f766e;
+      padding: 1px 4px;
+      border-radius: 2pt;
+      border: 0.4pt solid #e2dace;
+    }
+
+    /* Architecture Stage Card */
+    .arch-card {
+      background: #faf8f5;
+      border: 0.8pt solid #d6cec2;
+      border-left: 3pt solid #0f766e;
+      border-radius: 3pt;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+    }
+
+    .arch-card-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .arch-badge {
+      background: #0f766e;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 1.5px 6px;
+      border-radius: 2pt;
+    }
+
+    .arch-card-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: #14120f;
+    }
+
+    .arch-card-body {
+      font-size: 9pt;
+      color: #3e3830;
+      line-height: 1.42;
+      margin: 0;
+    }
+
+    /* LaTeX Booktabs Table */
+    table.booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 14px 0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 8.5pt;
+    }
+
+    table.booktabs th {
+      border-top: 1.2pt solid #14120f;
+      border-bottom: 0.6pt solid #14120f;
+      padding: 6px 8px;
+      font-weight: 700;
+      text-align: left;
+      color: #14120f;
+    }
+
+    table.booktabs td {
+      padding: 5.5px 8px;
+      border-bottom: 0.4pt solid #e2dace;
+      color: #3e3830;
+    }
+
+    table.booktabs tr:last-child td {
+      border-bottom: 1.2pt solid #14120f;
+    }
+
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+
+    .stat-bold {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #0f766e;
+    }
+
+    .stat-highlight {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #047857;
+    }
+
+    /* Role Profile Cards */
+    .role-container {
+      margin-bottom: 10px;
+    }
+
+    .role-box {
+      background: #faf8f5;
+      border: 0.8pt solid #d6cec2;
+      border-radius: 3pt;
+      padding: 9px 12px;
+      margin-bottom: 9px;
+    }
+
+    .role-header {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9.6pt;
+      font-weight: 700;
+      color: #0f766e;
+      margin-bottom: 3px;
+    }
+
+    .role-tech {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.8pt;
+      color: #6e6459;
+      margin-bottom: 4px;
+    }
+
+    .role-details {
+      font-size: 8.8pt;
+      color: #3e3830;
+      line-height: 1.38;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== PAGE 1 ==================== -->
+  <div class="doc-page">
+    <div class="doc-content">
+      <div class="doc-running-header">
+        <span><strong>RIVYN</strong> &mdash; AI Log Intelligence Platform</span>
+        <span>Confidential // Core Engineering Brief</span>
+      </div>
+
+      <div class="title-block">
+        <h1 class="doc-title">RIVYN: THE AI LOG INTELLIGENCE PLATFORM</h1>
+        <div class="doc-subtitle">Product Architecture, Engineering Milestones &amp; Talent Acquisition Guide</div>
+        <div class="doc-meta">
+          <strong>Core Engineering Team</strong> &bull; Origin: MHP Hackathon (A Porsche Company, Germany) &bull; Version 1.0 Enterprise &bull; September 2026
+        </div>
+      </div>
+
+      <div class="epigraph">
+        &ldquo;An LLM cannot use evidence it never sees. Raw logs sit outside the model and are far too massive to paste into every prompt. Deterministic steps must retain absolute control over parsing, columnar storage, and anomaly scoring before AI generation.&rdquo;
+      </div>
+
+      <div class="callout-box">
+        <div class="callout-title">Executive Summary &bull; Next-Generation Cloud Observability</div>
+        <div class="callout-body">
+          <strong>Rivyn</strong> is an enterprise-grade AI log intelligence and noise suppression platform developed to solve the \$50B crisis in cloud observability. Modern enterprise systems generate tens of gigabytes of unformatted text logs every hour. Rivyn ingests this raw deluge at <strong>13,000+ lines/second</strong>, compresses it by <strong>60% to 89%</strong> into zero-copy columnar <strong>Apache Parquet</strong> binary storage, and uses 3-tier machine learning to eliminate <strong>88% to 99.9% of alert noise</strong>. Instead of drowning Site Reliability Engineers (SREs) in thousands of duplicate alerts, Rivyn synthesizes cascading failure spikes into <strong>100% grounded root-cause incident tickets</strong> with exact log line and timestamp citations.
+        </div>
+      </div>
+
+      <h2 class="section-heading">1. Who We Are: Origin Story &amp; Engineering Philosophy</h2>
+
+      <h3 class="subsection-heading">1.1 Origin at the MHP Hackathon (A Porsche Company)</h3>
+      <p>
+        Rivyn was created during the prestigious <strong>MHP Hackathon (&ldquo;Take the Money and Run&rdquo;)</strong> in Germany. MHP (a prominent technology consultancy under Porsche AG) challenged participating engineers to tackle the foundational flaw of modern enterprise monitoring: <em>Challenge 1: AI-Powered Observability</em>.
+      </p>
+      <p>
+        The challenge brief illustrated the core problem with a classic computer vision analogy: <em>&ldquo;If you search a computer vision engine for 'find me all dogs', it should return pictures of puppies even if the caption never literally uses the word dog.&rdquo;</em> In cloud observability, legacy log management completely fails this test. Keyword tools match tokens literally. If an engineer searches for <em>&ldquo;brute force login attack&rdquo;</em>, traditional grep returns nothing because the underlying operating system log reads <code>authentication failure for user root from 218.188.2.4</code>.
+      </p>
+      <p>
+        Furthermore, enterprise vendors (Splunk, Datadog, Elastic) charge massive recurring ingest fees to index unstructured ASCII text that is rarely queried. When an outage strikes, engineers receive hundreds of duplicate PagerDuty alerts, causing alert fatigue and high MTTR.
+      </p>
+
+      <h3 class="subsection-heading">1.2 Our Three Non-Negotiable Engineering Tenets</h3>
+      <ul>
+        <li><strong>Binary Columnar Speed Over Text Grep:</strong> We parse unformatted log streams once upon arrival and serialize them directly into Apache Parquet with dictionary encoding. This enables zero-copy SIMD memory-mapped scans at <strong>28+ million rows/second</strong> directly in memory without JVM garbage collection spikes.</li>
+        <li><strong>Noise Elimination Over Alert Flooding:</strong> Individual log warnings must never trigger on-call alerts in isolation. Rivyn's 3-tier ML engine isolates genuine behavioral rarity and correlates co-occurring failures into a single actionable incident card, slashing alert noise by up to 99.9%.</li>
+        <li><strong>Strict Citations Over Generative Hallucinations:</strong> We never pipe unindexed raw logs into large language models. Every AI diagnostic claim is strictly grounded on dense vector embeddings citing exact source lines (<code>[Line #1 @ 08:31:02]</code>), paired with an offline heuristic fallback for air-gapped environments.</li>
+      </ul>
+    </div>
+
+    <div class="doc-running-footer">
+      <span>Rivyn Core Engineering Guide &bull; Confidential</span>
+      <span>Page 1 of 5</span>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 2 ==================== -->
+  <div class="doc-page">
+    <div class="doc-content">
+      <div class="doc-running-header">
+        <span><strong>RIVYN</strong> &mdash; System Architecture &amp; Pipeline</span>
+        <span>Confidential // Core Engineering Brief</span>
+      </div>
+
+      <h2 class="section-heading" style="margin-top: 0;">2. What the Product Does: Detailed Technical Architecture</h2>
+      <p>
+        Rivyn operates an end-to-end deterministic and cognitive pipeline divided into five high-throughput stages:
+      </p>
+
+      <!-- Stage 1 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">STAGE 01</span>
+          <span class="arch-card-title">Single-Pass Regex Drain3 Tree Ingestion (13k+ lines/sec)</span>
+        </div>
+        <p class="arch-card-body">
+          Traditional log parsing relies on brittle, handcrafted regular expressions. Rivyn compiles a unified single-pass regex mask (<code>COMBINED_MASK</code>) that matches IP addresses, UUIDs, hex values, file paths, and dates in a single scan. It dynamically replaces variable tokens with wildcards <code>&lt;*&gt;</code>, clustering thousands of raw lines into stable semantic templates at <strong>6,000 to 13,372 lines/second</strong> on a single CPU core. Integrated data governance scrubs passwords, tokens, and PII before storage.
+        </p>
+      </div>
+
+      <!-- Stage 2 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">STAGE 02</span>
+          <span class="arch-card-title">Columnar Binary Storage Engine (Apache Parquet + Snappy)</span>
+        </div>
+        <p class="arch-card-body">
+          Raw log text is notoriously redundant. Repeating field names like <code>"timestamp"</code>, <code>"service"</code>, and <code>"level"</code> consume up to 80% of uncompressed storage. Rivyn maps repetitive categorical strings into compact 1-byte integer dictionaries in Apache Parquet. Powered by <strong>PyArrow</strong>, zero-copy memory-mapped scans push boolean filters down to the byte level, achieving <strong>60% to 89.3% storage reduction</strong> without memory exhaustion.
+        </p>
+      </div>
+
+      <!-- Stage 3 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">STAGE 03</span>
+          <span class="arch-card-title">Multi-Tier Machine Learning Anomaly Engine</span>
+        </div>
+        <p class="arch-card-body">
+          Anomalies manifest across multiple dimensions: rarity, numerical telemetry spikes, and execution state breaks. Rivyn deploys a three-tier hybrid detector:
+          <br>&bull; <strong>Tier 1 (Statistical Rarity):</strong> Flags templates appearing in &lt;1% of baseline traffic.
+          <br>&bull; <strong>Tier 2 (Isolation Forest):</strong> Trains an ensemble of isolation trees on multi-dimensional telemetry:
+          <code>[template_freq, severity_num, time_delta, params_count, burst_zscore]</code>.
+          <br>&bull; <strong>Tier 3 (Markov Sequence Mining):</strong> Models execution state transitions between templates, flagging broken sequences where intermediate steps were skipped.
+        </p>
+      </div>
+
+      <!-- Stage 4 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">STAGE 04</span>
+          <span class="arch-card-title">Topological &amp; Temporal Incident Correlator</span>
+        </div>
+        <p class="arch-card-body">
+          When core infrastructure fails, hundreds of downstream components emit cascading errors within seconds. Rivyn merges anomalies occurring within sliding 60-second temporal windows that share identical domain entities (such as block IDs <code>blk_38865</code>, hostnames, or tenant IDs), consolidating alert floods into a unified incident ticket and slashing alert noise by <strong>88% to 99.9%</strong>.
+        </p>
+      </div>
+
+      <!-- Stage 5 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">STAGE 05</span>
+          <span class="arch-card-title">Grounded Copilot (RAG) &amp; Generative Incident Reasoner</span>
+        </div>
+        <p class="arch-card-body">
+          Dense vector embeddings (<code>all-MiniLM-L6-v2</code>) index sliding-window log chunks for sub-millisecond semantic retrieval. OpenAI GPT-4o, Claude, or Gemini synthesize root-cause hypotheses and actionable CLI checklists strictly citing exact lines (<code>[Line &lt;id&gt; @ &lt;timestamp&gt;]</code>). If cloud APIs time out or if deployed in air-gapped environments, a deterministic rule engine provides 100% offline coverage.
+        </p>
+      </div>
+    </div>
+
+    <div class="doc-running-footer">
+      <span>Rivyn Core Engineering Guide &bull; Confidential</span>
+      <span>Page 2 of 5</span>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 3 ==================== -->
+  <div class="doc-page">
+    <div class="doc-content">
+      <div class="doc-running-header">
+        <span><strong>RIVYN</strong> &mdash; Production Benchmarks &amp; Deliverables</span>
+        <span>Confidential // Core Engineering Brief</span>
+      </div>
+
+      <h2 class="section-heading" style="margin-top: 0;">3. What We Did So Far: Proven Production Benchmarks</h2>
+      <p>
+        Rivyn has undergone rigorous evaluation across <strong>7 heterogeneous LogHub production datasets</strong> comprising <strong>2,701,198 lines</strong> of real-world infrastructure logs. All benchmarks are verifiable using our automated evaluation harness:
+      </p>
+
+      <table class="booktabs">
+        <thead>
+          <tr>
+            <th>Dataset &amp; Dialect</th>
+            <th>System Category</th>
+            <th class="text-right">Lines</th>
+            <th class="text-right">Drain Parse Speed</th>
+            <th class="text-right">Storage Slashed</th>
+            <th class="text-right">Noise Reduction</th>
+            <th class="text-right">Triage Speedup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>HDFS</strong></td>
+            <td>Distributed Storage</td>
+            <td class="text-right">1,000,000</td>
+            <td class="text-right">9,984 lines/s</td>
+            <td class="text-right stat-bold">59.3% (2.5x)</td>
+            <td class="text-right stat-highlight">99.90%</td>
+            <td class="text-right stat-highlight">9,502.3x</td>
+          </tr>
+          <tr>
+            <td><strong>BGL</strong></td>
+            <td>131k-Core Supercomputer</td>
+            <td class="text-right">500,000</td>
+            <td class="text-right">9,190 lines/s</td>
+            <td class="text-right stat-bold">89.3% (9.3x)</td>
+            <td class="text-right stat-highlight">99.81%</td>
+            <td class="text-right stat-highlight">5,888.2x</td>
+          </tr>
+          <tr>
+            <td><strong>Spark</strong></td>
+            <td>Analytics Compute</td>
+            <td class="text-right">500,000</td>
+            <td class="text-right">12,223 lines/s</td>
+            <td class="text-right stat-bold">77.5% (4.4x)</td>
+            <td class="text-right stat-highlight">97.93%</td>
+            <td class="text-right stat-highlight">592.4x</td>
+          </tr>
+          <tr>
+            <td><strong>Hadoop</strong></td>
+            <td>Big Data YARN</td>
+            <td class="text-right">393,431</td>
+            <td class="text-right">13,372 lines/s</td>
+            <td class="text-right stat-bold">82.1% (5.6x)</td>
+            <td class="text-right stat-highlight">96.54%</td>
+            <td class="text-right stat-highlight">359.6x</td>
+          </tr>
+          <tr>
+            <td><strong>OpenStack</strong></td>
+            <td>Cloud Infrastructure</td>
+            <td class="text-right">207,820</td>
+            <td class="text-right">6,143 lines/s</td>
+            <td class="text-right stat-bold">61.3% (2.6x)</td>
+            <td class="text-right stat-highlight">97.45%</td>
+            <td class="text-right stat-highlight">391.8x</td>
+          </tr>
+          <tr>
+            <td><strong>ZooKeeper</strong></td>
+            <td>Distributed Consensus</td>
+            <td class="text-right">74,380</td>
+            <td class="text-right">12,601 lines/s</td>
+            <td class="text-right stat-bold">88.2% (8.5x)</td>
+            <td class="text-right stat-highlight">99.19%</td>
+            <td class="text-right stat-highlight">1,522.2x</td>
+          </tr>
+          <tr>
+            <td><strong>Linux</strong></td>
+            <td>OS Syslog / Auth</td>
+            <td class="text-right">25,567</td>
+            <td class="text-right">11,520 lines/s</td>
+            <td class="text-right stat-bold">66.3% (3.0x)</td>
+            <td class="text-right stat-highlight">88.21%</td>
+            <td class="text-right stat-highlight">105.9x</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="subsection-heading">3.1 In-Depth Analysis of Benchmark Results</h3>
+      <ul>
+        <li><strong>Massive Alert Noise Reduction:</strong> On HDFS, 94,523 raw anomalous lines were consolidated into just <strong>24 root-cause incident tickets</strong> (99.90% noise elimination). On OpenStack, 5,379 anomalies were reduced to 137 tickets (97.45% reduction).</li>
+        <li><strong>Triage Velocity Acceleration:</strong> Against an empirical 15-second manual review baseline, automated pipeline speedups range from <strong>105x to 9,502x</strong> across tested workloads.</li>
+        <li><strong>Extreme Columnar Compression:</strong> On the LLNL BlueGene/L (BGL) supercomputer RAS kernel logs, raw 64.91 MB logs were compressed into <strong>6.94 MB of Apache Parquet storage</strong> (9.3x reduction) with sub-30ms scan times.</li>
+        <li><strong>Semantic Retrieval Precision:</strong> Queries sharing zero literal vocabulary with target logs (e.g. <em>&ldquo;disk replica pipeline aborted&rdquo;</em> finding <code>PacketResponder terminating for block</code>) succeeded in 100% of cases using dense embeddings, while token search returned zero matches.</li>
+      </ul>
+
+      <h3 class="subsection-heading">3.2 Core Platform Deliverables Already Shipped</h3>
+      <ul>
+        <li><strong>Asynchronous Core Backend:</strong> Built with FastAPI, Pydantic schemas, and non-blocking I/O.</li>
+        <li><strong>PyArrow Binary Storage Engine:</strong> Columnar parquet serializer with vectorized pushdown filters.</li>
+        <li><strong>Dual-Mode Frontends:</strong> Interactive operational console (<code>/app</code>) + enterprise product marketing portal (<code>/</code>) with real-time interactive ROI calculator.</li>
+        <li><strong>Automated Test Suite:</strong> 31 unit, integration, and routing tests passing with full coverage.</li>
+      </ul>
+    </div>
+
+    <div class="doc-running-footer">
+      <span>Rivyn Core Engineering Guide &bull; Confidential</span>
+      <span>Page 3 of 5</span>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 4 ==================== -->
+  <div class="doc-page">
+    <div class="doc-content">
+      <div class="doc-running-header">
+        <span><strong>RIVYN</strong> &mdash; 2026&ndash;2027 Engineering Roadmap</span>
+        <span>Confidential // Core Engineering Brief</span>
+      </div>
+
+      <h2 class="section-heading" style="margin-top: 0;">4. What We Are Doing Next: 2026&ndash;2027 Engineering Roadmap</h2>
+      <p>
+        As we transition from single-node instances to distributed multi-cluster enterprise deployments, our incoming engineering division in India will directly architect and own four major technical initiatives:
+      </p>
+
+      <!-- Roadmap 1 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">INITIATIVE 01</span>
+          <span class="arch-card-title">Sub-Second Distributed Streaming Ingestion</span>
+        </div>
+        <p class="arch-card-body">
+          Transitioning from batch parsing to high-throughput continuous stream processing:
+          <br>&bull; Build native stream consumers for <strong>Apache Kafka</strong>, <strong>Vector</strong>, and <strong>FluentBit</strong> using Rust and C++ PyArrow bindings.
+          <br>&bull; Implement sliding-window online tree clustering sustaining <strong>&gt;100,000 lines/second per node</strong> with sub-200ms end-to-end incident generation latency.
+          <br>&bull; Deploy native OpenTelemetry (OTLP) gRPC and HTTP receiver endpoints.
+        </p>
+      </div>
+
+      <!-- Roadmap 2 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">INITIATIVE 02</span>
+          <span class="arch-card-title">Serverless Vectorized Analytical Queries (DuckDB &amp; DataFusion)</span>
+        </div>
+        <p class="arch-card-body">
+          Enabling ad-hoc exploration across petabytes of historical logs stored in cloud object storage:
+          <br>&bull; Integrate <strong>DuckDB</strong> and <strong>Apache Arrow DataFusion</strong> for serverless SQL pushdown execution directly over remote compressed Parquet files (AWS S3, Google Cloud Storage, MinIO).
+          <br>&bull; Implement <strong>Apache Arrow Flight RPC</strong> for ultra-low latency distributed data transmission between ingestion nodes and analytics clients.
+          <br>&bull; Enable sub-second cross-cluster filtering without maintaining dedicated index clusters.
+        </p>
+      </div>
+
+      <!-- Roadmap 3 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">INITIATIVE 03</span>
+          <span class="arch-card-title">On-Premise Air-Gapped Small Language Models (SLMs)</span>
+        </div>
+        <p class="arch-card-body">
+          Target enterprise customers (defense, banking, healthcare) operate in strictly air-gapped environments where cloud AI APIs are prohibited:
+          <br>&bull; Fine-tune lightweight 7B and 8B parameter models (such as Llama-3, Mistral, or Qwen) on domain-specific infrastructure outage corpora.
+          <br>&bull; Quantize models using GGUF and AWQ to run locally on customer CPU clusters or single workstation GPUs with sub-second inference response times.
+          <br>&bull; Guarantee 100% private, zero-data-leakage root-cause synthesis.
+        </p>
+      </div>
+
+      <!-- Roadmap 4 -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-badge">INITIATIVE 04</span>
+          <span class="arch-card-title">Linux Kernel eBPF Telemetry Probes</span>
+        </div>
+        <p class="arch-card-body">
+          Moving upstream from application stdout/stderr logs directly into the operating system kernel:
+          <br>&bull; Develop lightweight <strong>eBPF</strong> (extended Berkeley Packet Filter) probes to capture process lifecycles, TCP socket resets, packet drops, and file descriptor errors before they are ever written to disk.
+          <br>&bull; Correlate low-level kernel signals with high-level application templates for unmatched root-cause attribution.
+        </p>
+      </div>
+    </div>
+
+    <div class="doc-running-footer">
+      <span>Rivyn Core Engineering Guide &bull; Confidential</span>
+      <span>Page 4 of 5</span>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 5 ==================== -->
+  <div class="doc-page">
+    <div class="doc-content">
+      <div class="doc-running-header">
+        <span><strong>RIVYN</strong> &mdash; Talent Acquisition Guide (India Hub)</span>
+        <span>Confidential // Core Engineering Brief</span>
+      </div>
+
+      <h2 class="section-heading" style="margin-top: 0;">5. Talent Acquisition Guide: Open Roles for Engineers in India</h2>
+      <p>
+        We are building our core systems and machine learning engineering division in <strong>India</strong>. Engineers joining this hub are founding team members with direct architectural ownership:
+      </p>
+
+      <!-- Roles Container -->
+      <div class="role-container">
+        <!-- Role 1 -->
+        <div class="role-box">
+          <div class="role-header">1. Distributed Systems &amp; Columnar Storage Engineer</div>
+          <div class="role-tech">Tech Stack: Python, C++ or Rust, Apache Arrow, PyArrow, Apache Parquet, Kafka</div>
+          <p class="role-details">
+            Architect the binary columnar storage engine, streaming Parquet writers, zero-copy memory mapping, and distributed caching topologies. Optimize SIMD query pushdown kernels and build low-latency data pipelines handling millions of events.
+          </p>
+        </div>
+
+        <!-- Role 2 -->
+        <div class="role-box">
+          <div class="role-header">2. Machine Learning &amp; Anomaly Detection Engineer</div>
+          <div class="role-tech">Tech Stack: Python, Scikit-Learn, PyTorch, Sentence-Transformers, HuggingFace, NetworkX</div>
+          <p class="role-details">
+            Design online clustering algorithms, unsupervised multivariate anomaly detectors, and Markov state transition models. Build dense vector embedding indices and fine-tune domain-specific Small Language Models (SLMs) for local incident reasoning.
+          </p>
+        </div>
+
+        <!-- Role 3 -->
+        <div class="role-box">
+          <div class="role-header">3. Systems Full-Stack &amp; UI Engineer</div>
+          <div class="role-tech">Tech Stack: Modern JavaScript/TypeScript, HTML5/CSS3, WebSockets, FastAPI, Chart.js / D3</div>
+          <p class="role-details">
+            Develop low-latency operational dashboards, real-time WebSocket incident streaming boards, and visual anomaly burst inspectors capable of rendering thousands of data points smoothly at 60 FPS.
+          </p>
+        </div>
+
+        <!-- Role 4 -->
+        <div class="role-box">
+          <div class="role-header">4. Cloud Infrastructure, SRE &amp; Security Architect</div>
+          <div class="role-tech">Tech Stack: Kubernetes, Docker, Helm, Terraform, Linux internals, eBPF, CI/CD</div>
+          <p class="role-details">
+            Engineer Kubernetes Operators, Helm deployments, automated enterprise PII scrubbing governance, and 100% air-gapped private VPC packaging across AWS, Azure, GCP, and bare metal.
+          </p>
+        </div>
+      </div>
+
+      <h3 class="subsection-heading">5.1 Why Join the Rivyn Core Team?</h3>
+      <ul>
+        <li><strong>Genuine Computer Science Challenges:</strong> Work on low-level memory mapping, SIMD algorithms, online stream clustering, and local SLM inference &mdash; not boilerplate CRUD APIs.</li>
+        <li><strong>Founding Equity &amp; Autonomy:</strong> Enjoy founding engineering equity grants, transparent ownership, and the ability to influence core architecture from day one.</li>
+        <li><strong>Global Engineering Culture:</strong> Collaborate in a high-trust, zero-bureaucracy environment committed to automated testing, reproducible benchmarks, and clean software craftsmanship.</li>
+      </ul>
+
+      <div style="margin-top: 12px; text-align: center; border-top: 0.8pt solid #0f766e; padding-top: 8px;">
+        <span style="font-family: 'DM Sans', sans-serif; font-size: 9pt; font-weight: 700; color: #0f766e;">
+          Join the Rivyn Core Team &bull; Building the Future of Intelligent Cloud Observability
+        </span><br>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 8.2pt; color: #6e6459;">
+          Repository: github.com/vamshidharre/TaketheMoneyandRun_Hackathon &bull; Contact: careers@rivyn.ai
+        </span>
+      </div>
+    </div>
+
+    <div class="doc-running-footer">
+      <span>Rivyn Core Engineering Guide &bull; Confidential</span>
+      <span>Page 5 of 5</span>
+    </div>
+  </div>
+
+</body>
+</html>

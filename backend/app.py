@@ -53,7 +53,19 @@ if os.path.exists(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
     @app.get("/")
-    def serve_frontend_root():
+    @app.get("/product")
+    @app.get("/marketing")
+    def serve_marketing_root():
+        marketing_path = os.path.join(frontend_dir, "marketing.html")
+        if os.path.exists(marketing_path):
+            return FileResponse(marketing_path, headers={"Cache-Control": "no-store"})
+        return FileResponse(os.path.join(frontend_dir, "index.html"), headers={"Cache-Control": "no-store"})
+
+    @app.get("/app")
+    @app.get("/console")
+    @app.get("/dashboard")
+    @app.get("/tool")
+    def serve_tool_ui():
         return FileResponse(
             os.path.join(frontend_dir, "index.html"),
             headers={"Cache-Control": "no-store"},

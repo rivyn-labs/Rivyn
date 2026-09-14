@@ -34,17 +34,20 @@
   <!-- Top Navigation Bar -->
   <header>
     <div class="logo-area">
-      <div>
-        <div class="logo-title">Rivyn</div>
-      </div>
+      <a href="/" class="logo-title" style="text-decoration: none; color: inherit;">Rivyn</a>
+      <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; background: var(--bg-inset); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 999px; color: var(--text-muted); margin-left: 8px; font-family: var(--font-mono);">Console</span>
+      <a href="/" class="btn btn-secondary" style="font-size: 0.78rem; padding: 4px 10px; margin-left: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Go to Product Marketing Website">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Product Overview
+      </a>
     </div>
 
     <div class="header-controls">
       <label for="datasetSelect" class="header-label">Dataset</label>
       <select id="datasetSelect" class="select-dataset">
-        <option value="hdfs">HDFS</option>
-        <option value="openstack">OpenStack</option>
-        <option value="spark" selected>Spark</option>
+        <option value="linux" selected>Linux (Syslog)</option>
+        <option value="openstack">OpenStack (Cloud IaaS)</option>
+        <option value="zookeeper">ZooKeeper</option>
       </select>
 
       <button id="btnUpdateDataset" class="btn btn-secondary" title="Load the selected demo dataset">
@@ -279,6 +282,6 @@
     </div>
   </div>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=20260914-fast2"></script>
 </body>
 </html>

@@ -45,18 +45,22 @@ function initTheme() {
 function bindEvents() {
   const datasetSelect = document.getElementById("datasetSelect");
 
-  // Load the explicitly selected presentation dataset; startup stays empty.
+  // Load the explicitly selected presentation dataset
   const btnUpdate = document.getElementById("btnUpdateDataset");
-  btnUpdate.addEventListener("click", async () => {
-    btnUpdate.disabled = true;
-    btnUpdate.textContent = "Updating…";
-    try {
-      await switchDataset(datasetSelect.value);
-    } finally {
-      btnUpdate.disabled = false;
-      btnUpdate.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Load sample`;
-    }
-  });
+  if (btnUpdate && datasetSelect) {
+    const loadAction = async () => {
+      btnUpdate.disabled = true;
+      btnUpdate.textContent = `Loading ${datasetSelect.value}…`;
+      try {
+        await switchDataset(datasetSelect.value);
+      } finally {
+        btnUpdate.disabled = false;
+        btnUpdate.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Load sample`;
+      }
+    };
+    btnUpdate.addEventListener("click", loadAction);
+    datasetSelect.addEventListener("change", loadAction);
+  }
 
   const searchInput = document.getElementById("logSearch");
   searchInput.addEventListener("input", debounce(fetchLogs, 300));
@@ -124,21 +128,30 @@ async function refreshDashboard() {
 
 async function switchDataset(datasetName) {
   try {
-    const demoLineCounts = { openstack: 207820, spark: 100000, hdfs: 100000 };
-    const linesCount = demoLineCounts[datasetName];
-    if (!linesCount) return;
+    const demoLineCounts = {
+      linux: 5000,
+      openstack: 5000,
+      zookeeper: 5000,
+      spark: 5000,
+      hdfs: 5000,
+    };
+    const linesCount = demoLineCounts[datasetName] || 5000;
 
     const res = await fetch("/api/ingest/sample", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ dataset: datasetName, max_lines: linesCount })
     });
-    if (res.ok) {
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail || "Failed to load sample dataset.");
+      return;
+    }
     incidentOffset = 0;
     await refreshDashboard();
-    }
   } catch (err) {
     console.error("Failed to switch dataset:", err);
+    alert("Error loading dataset: " + err.message);
   }
 }
 
