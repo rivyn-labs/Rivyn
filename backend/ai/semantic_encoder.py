@@ -15,6 +15,10 @@ rather than breaking.
 
 Enable with:  pip install -r requirements-semantic.txt
 Disable explicitly with:  AETHER_DISABLE_SEMANTIC=1
+
+For predictable server startup, Rivyn uses only a locally cached model by
+default. Set AETHER_ALLOW_SEMANTIC_DOWNLOAD=1 once on a connected machine when
+you deliberately want sentence-transformers to download a missing model.
 """
 
 import logging
@@ -77,10 +81,15 @@ class SemanticEncoder:
             return
 
         try:
-            self._model = SentenceTransformer(self.model_name)
+            allow_download = os.getenv("AETHER_ALLOW_SEMANTIC_DOWNLOAD", "").strip() in ("1", "true", "True")
+            self._model = SentenceTransformer(
+                self.model_name,
+                local_files_only=not allow_download,
+            )
             logger.info("Semantic retrieval enabled using %s", self.model_name)
         except Exception as exc:
-            # Most often no network on first run, when the model must be fetched.
+            # A missing local model falls back immediately instead of delaying
+            # a local demo with network retries.
             self._unavailable_reason = f"could not load model {self.model_name}: {exc}"
             logger.warning("Semantic retrieval unavailable: %s. Using TF-IDF.", self._unavailable_reason)
 

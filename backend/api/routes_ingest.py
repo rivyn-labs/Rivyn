@@ -6,6 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from typing import List, Optional
 from backend.ingestion.loader import LogLoader
+from backend.ingestion.streaming import StreamingLogProcessor
 from backend.ai.anomaly_detector import HybridAnomalyDetector
 from backend.ai.incident_correlator import IncidentCorrelator
 from backend.ai.embeddings import LogEmbeddingIndex
@@ -19,6 +20,11 @@ router = APIRouter(prefix="/api", tags=["Ingestion"])
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 MAX_UPLOAD_LINES = 200_000
+MAX_BULK_FILE_BYTES = 26 * 1024 * 1024 * 1024
+# Conservative local calibration of the current Python parser + Parquet writer.
+# The bulk route is intentionally disk-first, but parsing still dominates its
+# throughput; do not promise SSD-speed ingestion before native/parallel parsing.
+DEFAULT_STREAMING_BYTES_PER_SECOND = 160 * 1024
 DEFAULT_LINES_PER_SECOND = 750.0
 MIN_ESTIMATE_SECONDS = 5.0
 PROCESSING_OVERHEAD_SECONDS = 4.0
@@ -30,6 +36,10 @@ class SampleIngestRequest(BaseModel):
 class RawIngestRequest(BaseModel):
     content: str
     dataset_name: Optional[str] = "custom_raw"
+
+class BulkIngestRequest(BaseModel):
+    filename: str
+    dataset_name: Optional[str] = None
 
 def _process_and_store(
     batch,
@@ -94,6 +104,29 @@ def _estimate_processing_seconds(line_count: int) -> float:
     return round(max(MIN_ESTIMATE_SECONDS, (line_count / lines_per_second) + PROCESSING_OVERHEAD_SECONDS), 1)
 
 
+def _bulk_import_dir() -> str:
+    path = os.path.join(settings.data_dir, "imports")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def _safe_bulk_source(filename: str) -> str:
+    """Resolve a bulk source without allowing arbitrary server file reads."""
+    clean_name = os.path.basename(filename)
+    if not clean_name or clean_name != filename:
+        raise HTTPException(status_code=400, detail="Use a filename from the bulk import folder, not a path.")
+    source = os.path.join(_bulk_import_dir(), clean_name)
+    if not os.path.isfile(source):
+        raise HTTPException(status_code=404, detail=f"Bulk file '{clean_name}' was not found in data/imports.")
+    if os.path.getsize(source) > MAX_BULK_FILE_BYTES:
+        raise HTTPException(status_code=413, detail="Bulk ingestion is limited to 26 GiB per run.")
+    return source
+
+
+def _estimate_streaming_seconds(byte_count: int) -> float:
+    return round(max(20.0, byte_count / DEFAULT_STREAMING_BYTES_PER_SECOND), 1)
+
+
 def _run_upload_job(job_id: str, lines: List[str], filename: str, byte_count: int) -> None:
     job = state.ingestion_jobs[job_id]
     job["status"] = "processing"
@@ -132,6 +165,45 @@ def _run_upload_job(job_id: str, lines: List[str], filename: str, byte_count: in
             "completed_at": time.time(),
         })
 
+
+def _run_bulk_stream_job(job_id: str, source_path: str, dataset_name: str) -> None:
+    job = state.ingestion_jobs[job_id]
+    job.update({"status": "processing", "started_at": time.time(), "stage": "Preparing disk-first stream", "progress": 3})
+    try:
+        def update(stage: str, progress: int, lines_processed: int) -> None:
+            job.update({"stage": stage, "progress": progress, "lines_processed": lines_processed})
+
+        processor = StreamingLogProcessor()
+        output_dir = os.path.join(settings.data_dir, "streaming", job_id)
+        batch, binary_stats = processor.process_file(source_path, dataset_name, output_dir, progress=update)
+        elapsed = max(0.01, time.time() - job["started_at"])
+        state.bulk_runs[job_id] = {
+            "id": job_id,
+            "dataset_name": dataset_name,
+            "batch": batch,
+            "binary_stats": binary_stats,
+        }
+        job.update({
+            "status": "complete",
+            "stage": "Bulk dataset stored",
+            "progress": 100,
+            "completed_at": time.time(),
+            "elapsed_seconds": round(elapsed, 2),
+            "lines_processed": batch.total_lines,
+            "lines_per_second": round(batch.total_lines / elapsed, 1),
+            "bytes_per_second": round(job["bytes"] / elapsed, 1),
+            "execution_mode": "streaming",
+            "parquet_file": binary_stats["filename"],
+            "dashboard_preview_rows": binary_stats["dashboard_preview_rows"],
+        })
+    except Exception as exc:
+        job.update({
+            "status": "failed",
+            "stage": "Bulk ingestion failed",
+            "error": str(exc),
+            "completed_at": time.time(),
+        })
+
 @router.get("/storage/binary-stats")
 def get_binary_stats():
     if not state.binary_stats:
@@ -150,6 +222,64 @@ def list_available_datasets():
         {"id": "hdfs", "name": "HDFS", "type": "Distributed File System", "scale": "Enterprise Scale", "file": "HDFS.log"},
     ]
     return {"datasets": datasets}
+
+
+@router.get("/ingest/bulk-files")
+def list_bulk_files():
+    """List local large files staged under data/imports for disk-first ingest."""
+    allowed = {".log", ".txt", ".csv"}
+    files = []
+    for entry in os.scandir(_bulk_import_dir()):
+        if entry.is_file() and os.path.splitext(entry.name)[1].lower() in allowed:
+            files.append({"filename": entry.name, "bytes": entry.stat().st_size})
+    return {"import_directory": "data/imports", "max_bytes": MAX_BULK_FILE_BYTES, "files": sorted(files, key=lambda item: item["filename"].lower())}
+
+
+@router.post("/ingest/stream-file", status_code=202)
+def ingest_bulk_file(req: BulkIngestRequest, background_tasks: BackgroundTasks):
+    """Start a bounded-memory Parquet ingestion for a locally staged large file."""
+    source = _safe_bulk_source(req.filename)
+    byte_count = os.path.getsize(source)
+    job_id = str(uuid.uuid4())
+    dataset_name = req.dataset_name or os.path.splitext(os.path.basename(req.filename))[0]
+    state.ingestion_jobs[job_id] = {
+        "id": job_id,
+        "status": "queued",
+        "stage": "Queued for bulk streaming",
+        "progress": 0,
+        "filename": os.path.basename(req.filename),
+        "bytes": byte_count,
+        "lines_detected": None,
+        "lines_to_process": None,
+        "created_at": time.time(),
+        "estimated_seconds": _estimate_streaming_seconds(byte_count),
+        "execution_mode": "streaming",
+    }
+    background_tasks.add_task(_run_bulk_stream_job, job_id, source, dataset_name)
+    return {
+        "status": "accepted",
+        "job_id": job_id,
+        "execution_mode": "streaming",
+        "estimated_seconds": state.ingestion_jobs[job_id]["estimated_seconds"],
+        "message": "The source stays on disk while Rivyn writes chunked Parquet row groups.",
+    }
+
+
+@router.get("/ingest/bulk-runs/{job_id}")
+def get_bulk_run(job_id: str):
+    run = state.bulk_runs.get(job_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Bulk run is not available. Check the ingestion job first.")
+    batch = run["batch"]
+    return {
+        "id": job_id,
+        "dataset_name": run["dataset_name"],
+        "total_lines": batch.total_lines,
+        "detected_format": batch.detected_format,
+        "anomalies_count": batch.metrics.anomalies_count,
+        "incident_preview": [incident.model_dump() for incident in batch.incidents[:12]],
+        "storage": run["binary_stats"],
+    }
 
 @router.post("/ingest/sample")
 def ingest_sample(req: SampleIngestRequest):

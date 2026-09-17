@@ -249,7 +249,7 @@
         <button id="btnCloseModal" class="close-btn" aria-label="Close dialog">&times;</button>
       </div>
       <p class="modal-desc">
-        Select a log file up to 20 MiB. Rivyn will estimate the analysis time, then report measured processing speed when it finishes.
+        Interactive uploads support files up to 20 MiB. Rivyn estimates the analysis time and reports measured processing speed when it finishes.
       </p>
       <input type="file" id="fileInput" class="file-input" accept=".log,.txt,.csv" />
       <div id="uploadFilePreview" class="upload-file-preview" hidden>
@@ -275,6 +275,22 @@
         </div>
         <p id="uploadResult" class="upload-result"></p>
       </div>
+      <section class="bulk-ingest" aria-labelledby="bulkIngestTitle">
+        <div class="bulk-ingest-head">
+          <div>
+            <div class="field-label" id="bulkIngestTitle">Bulk streaming import</div>
+            <p>For files up to 26 GiB, place the file in <code>data/imports</code>. Rivyn streams it to Parquet without loading the full dataset into memory.</p>
+          </div>
+          <button id="btnRefreshBulkFiles" type="button" class="btn btn-secondary btn-compact">Refresh</button>
+        </div>
+        <div class="bulk-ingest-actions">
+          <select id="bulkFileSelect" aria-label="Bulk file staged for streaming import">
+            <option value="">No bulk files found</option>
+          </select>
+          <button id="btnStartBulkIngest" type="button" class="btn btn-secondary" disabled>Start bulk stream</button>
+        </div>
+        <p id="bulkIngestHint" class="section-meta">The original file stays on disk. Dashboard results remain a bounded preview.</p>
+      </section>
       <div class="modal-actions">
         <button id="btnCancelUpload" class="btn btn-secondary">Cancel</button>
         <button id="btnSubmitUpload" class="btn">Ingest &amp; Analyze</button>

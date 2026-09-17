@@ -38,6 +38,8 @@ env/
 
 # Testing & Coverage
 .pytest_cache/
+.pytest-*/
+/.server-restart.*.log
 .coverage
 htmlcov/
 .tox/
@@ -70,6 +72,8 @@ data/samples/node_logs/
 data/samples/*.zip
 data/samples/*.tar.gz
 data/binary/
+data/imports/
+data/streaming/
 
 # OS generated
 Thumbs.db

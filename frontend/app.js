@@ -92,6 +92,7 @@ function bindEvents() {
 
   btnUploadModal.addEventListener("click", () => {
     uploadModal.style.display = "flex";
+    loadBulkFiles();
   });
 
   const closeModal = () => {
@@ -103,6 +104,9 @@ function bindEvents() {
   btnCancelUpload.addEventListener("click", closeModal);
 
   btnSubmitUpload.addEventListener("click", handleFileUpload);
+
+  document.getElementById("btnRefreshBulkFiles").addEventListener("click", loadBulkFiles);
+  document.getElementById("btnStartBulkIngest").addEventListener("click", startBulkIngest);
 
   // Benchmark
   const btnRunBenchmark = document.getElementById("btnRunBenchmark");
@@ -421,6 +425,61 @@ async function handleFileUpload() {
   }
 }
 
+async function loadBulkFiles() {
+  const select = document.getElementById("bulkFileSelect");
+  const startButton = document.getElementById("btnStartBulkIngest");
+  const hint = document.getElementById("bulkIngestHint");
+  select.innerHTML = '<option value="">Checking data/imports…</option>';
+  startButton.disabled = true;
+  try {
+    const res = await fetch("/api/ingest/bulk-files");
+    const data = await res.json();
+    const files = data.files || [];
+    if (!files.length) {
+      select.innerHTML = '<option value="">No .log, .txt, or .csv files in data/imports</option>';
+      hint.textContent = "Stage a large local file in data/imports, then refresh this list.";
+      return;
+    }
+    select.innerHTML = files.map(file =>
+      `<option value="${escapeHtml(file.filename)}" data-bytes="${Number(file.bytes)}">${escapeHtml(file.filename)} (${formatBytes(file.bytes)})</option>`
+    ).join("");
+    startButton.disabled = false;
+    hint.textContent = `Streaming limit: ${formatBytes(data.max_bytes)}. The source remains on disk while Parquet is written incrementally.`;
+  } catch (err) {
+    select.innerHTML = '<option value="">Could not read bulk import folder</option>';
+    hint.textContent = "Bulk staging is unavailable until the local Rivyn server is running.";
+    console.error("Bulk file listing failed:", err);
+  }
+}
+
+async function startBulkIngest() {
+  const select = document.getElementById("bulkFileSelect");
+  const filename = select.value;
+  if (!filename) return;
+  const selected = select.options[select.selectedIndex];
+  const bytes = Number(selected.dataset.bytes || 0);
+  const startButton = document.getElementById("btnStartBulkIngest");
+  startButton.disabled = true;
+  prepareUploadUi({ name: filename, size: bytes });
+  updateUploadProgress("Starting disk-first bulk stream", 2);
+  try {
+    const res = await fetch("/api/ingest/stream-file", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Failed to start bulk ingestion.");
+    activeUploadJobId = data.job_id;
+    document.getElementById("uploadEstimatedTime").textContent = formatDuration(data.estimated_seconds);
+    document.getElementById("uploadRemainingTime").textContent = formatDuration(data.estimated_seconds);
+    pollUploadJob();
+  } catch (err) {
+    startButton.disabled = false;
+    showUploadFailure(err.message || "Bulk ingestion failed to start.");
+  }
+}
+
 function previewUploadFile() {
   const file = document.getElementById("fileInput").files[0];
   const preview = document.getElementById("uploadFilePreview");
@@ -472,9 +531,12 @@ async function pollUploadJob() {
       clearInterval(uploadTimerId);
       const lines = Number(job.lines_processed || 0).toLocaleString();
       const speed = Number(job.lines_per_second || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
-      document.getElementById("uploadResult").textContent = `Ready · ${lines} lines processed in ${formatDuration(job.elapsed_seconds)} (${speed} lines/sec)`;
+      const bulkComplete = job.execution_mode === "streaming";
+      document.getElementById("uploadResult").textContent = bulkComplete
+        ? `Bulk dataset stored · ${lines} lines streamed to ${job.parquet_file} in ${formatDuration(job.elapsed_seconds)} (${speed} lines/sec)`
+        : `Ready · ${lines} lines processed in ${formatDuration(job.elapsed_seconds)} (${speed} lines/sec)`;
       finishUploadUi();
-      await refreshDashboard();
+      if (!bulkComplete) await refreshDashboard();
       return;
     }
     if (job.status === "failed") throw new Error(job.error || "Analysis failed.");
@@ -500,6 +562,7 @@ function finishUploadUi() {
   document.getElementById("btnCancelUpload").disabled = false;
   document.getElementById("btnCancelUpload").textContent = "Close";
   document.getElementById("btnCloseModal").disabled = false;
+  document.getElementById("btnStartBulkIngest").disabled = !document.getElementById("bulkFileSelect").value;
 }
 
 function showUploadFailure(message) {
@@ -538,6 +601,7 @@ function formatDuration(seconds) {
 
 function formatBytes(bytes) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 

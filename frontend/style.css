@@ -1089,6 +1089,63 @@ tbody tr.row-anomaly:hover { filter: brightness(0.98); }
   color: var(--accent-cyan);
 }
 
+.bulk-ingest {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border-color);
+}
+
+.bulk-ingest-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.bulk-ingest p {
+  margin: var(--sp-1) 0 0;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.bulk-ingest code {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+}
+
+.bulk-ingest-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.bulk-ingest-actions select {
+  min-width: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  color: var(--text-primary);
+  padding: 0 var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.btn-compact {
+  min-height: 30px;
+  padding: 0 var(--sp-2);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 560px) {
+  .bulk-ingest-head,
+  .bulk-ingest-actions {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+}
+
 /* ============================================================
    SIGNAL FIELD — original atmospheric motion system
    ============================================================ */

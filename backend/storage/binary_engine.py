@@ -35,6 +35,45 @@ class BinaryLogEngine:
     ])
 
     @classmethod
+    def logs_to_table(cls, logs: List[NormalizedLog]) -> pa.Table:
+        """Convert a bounded batch of normalized records to an Arrow table.
+
+        Keeping this conversion independent from ``save_batch`` lets the bulk
+        ingestor append one row group at a time instead of assembling an entire
+        dataset in RAM.
+        """
+        return pa.Table.from_arrays(
+            [
+                pa.array([l.id for l in logs], type=pa.uint32()),
+                pa.array([l.timestamp or "" for l in logs], type=pa.string()),
+                pa.array([l.timestamp_epoch or 0.0 for l in logs], type=pa.float64()),
+                pa.array([l.level for l in logs]).dictionary_encode(),
+                pa.array([l.service or "unknown" for l in logs]).dictionary_encode(),
+                pa.array([l.host or "local" for l in logs]).dictionary_encode(),
+                pa.array([l.pid or "" for l in logs], type=pa.string()),
+                pa.array([l.message for l in logs], type=pa.string()),
+                pa.array([l.template_id for l in logs]).dictionary_encode(),
+                pa.array([l.template for l in logs], type=pa.string()),
+                pa.array([l.params if l.params else [] for l in logs], type=pa.list_(pa.string())),
+                pa.array([json.dumps(l.entities) for l in logs], type=pa.string()),
+                pa.array([float(l.anomaly_score) for l in logs], type=pa.float32()),
+                pa.array([bool(l.is_anomaly) for l in logs], type=pa.bool_()),
+            ],
+            schema=cls.ARROW_SCHEMA,
+        )
+
+    @classmethod
+    def open_stream_writer(cls, filepath: str) -> pq.ParquetWriter:
+        """Open a compressed Parquet writer for incremental ingestion."""
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        return pq.ParquetWriter(filepath, cls.ARROW_SCHEMA, compression="snappy")
+
+    @classmethod
+    def write_stream_chunk(cls, writer: pq.ParquetWriter, logs: List[NormalizedLog]) -> None:
+        if logs:
+            writer.write_table(cls.logs_to_table(logs))
+
+    @classmethod
     def save_batch(cls, batch: LogBatch, output_dir: str = "data/binary") -> Dict[str, Any]:
         """
         Serializes a LogBatch to compressed binary Parquet format with dictionary encoding.
@@ -46,45 +85,10 @@ class BinaryLogEngine:
         t0 = time.time()
         logs = batch.logs
 
-        # Build columnar arrays
-        ids = [l.id for l in logs]
-        timestamps = [l.timestamp or "" for l in logs]
-        epochs = [l.timestamp_epoch or 0.0 for l in logs]
-        levels = [l.level for l in logs]
-        services = [l.service or "unknown" for l in logs]
-        hosts = [l.host or "local" for l in logs]
-        pids = [l.pid or "" for l in logs]
-        messages = [l.message for l in logs]
-        template_ids = [l.template_id for l in logs]
-        templates = [l.template for l in logs]
-        params = [l.params if l.params else [] for l in logs]
-        entities_jsons = [json.dumps(l.entities) for l in logs]
-        anomaly_scores = [float(l.anomaly_score) for l in logs]
-        is_anomalies = [bool(l.is_anomaly) for l in logs]
-
         # Calculate raw text size for comparison
         raw_text_bytes = sum(len(l.raw.encode('utf-8')) for l in logs) if logs else 1
 
-        # Construct PyArrow Table
-        table = pa.Table.from_arrays(
-            [
-                pa.array(ids, type=pa.uint32()),
-                pa.array(timestamps, type=pa.string()),
-                pa.array(epochs, type=pa.float64()),
-                pa.array(levels).dictionary_encode(),
-                pa.array(services).dictionary_encode(),
-                pa.array(hosts).dictionary_encode(),
-                pa.array(pids, type=pa.string()),
-                pa.array(messages, type=pa.string()),
-                pa.array(template_ids).dictionary_encode(),
-                pa.array(templates, type=pa.string()),
-                pa.array(params, type=pa.list_(pa.string())),
-                pa.array(entities_jsons, type=pa.string()),
-                pa.array(anomaly_scores, type=pa.float32()),
-                pa.array(is_anomalies, type=pa.bool_()),
-            ],
-            schema=cls.ARROW_SCHEMA
-        )
+        table = cls.logs_to_table(logs)
 
         # Write Parquet binary file with Snappy compression
         pq.write_table(table, filepath, compression="snappy")
@@ -114,12 +118,17 @@ class BinaryLogEngine:
             raise FileNotFoundError(f"Binary file not found: {filepath}")
 
         t0 = time.time()
-        table = pq.read_table(filepath, columns=["id", "anomaly_score", "is_anomaly"])
-        total_rows = len(table)
-
-        mask = pc.equal(table["is_anomaly"], True)
-        anomalous_table = table.filter(mask)
-        anomaly_count = len(anomalous_table)
+        total_rows = 0
+        anomaly_count = 0
+        # ParquetFile iterates row groups and avoids materializing a 26 GB
+        # dataset during a simple metrics scan.
+        parquet_file = pq.ParquetFile(filepath)
+        for record_batch in parquet_file.iter_batches(
+            batch_size=131_072,
+            columns=["is_anomaly"],
+        ):
+            total_rows += record_batch.num_rows
+            anomaly_count += int(pc.sum(pc.cast(record_batch.column(0), pa.int64())).as_py() or 0)
         scan_time_ms = round((time.time() - t0) * 1000, 3)
 
         rows_per_sec = int(total_rows / max(0.0001, scan_time_ms / 1000))

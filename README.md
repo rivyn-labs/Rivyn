@@ -11,6 +11,12 @@
 
 For the interactive demo, custom uploads are intentionally limited to 20 MiB and 200,000 lines so an in-memory analysis remains responsive. The supplied benchmark datasets remain available through the dataset selector.
 
+### Bulk files up to 26 GiB
+
+Rivyn also provides a disk-first ingestion path for large local files. Place a `.log`, `.txt`, or `.csv` file in `data/imports/`, open **Upload Log**, select it under **Bulk streaming import**, and start the run. The processor parses a bounded chunk at a time and appends compressed Parquet row groups under `data/streaming/<job-id>/`; it never builds a 26 GiB log list in application memory.
+
+Bulk runs keep a bounded dashboard and incident preview in memory. Their streaming detector uses deterministic severity and failure-keyword signals, while the full normalized evidence remains in Parquet for targeted or offline global correlation. This distinction is deliberate: a global Isolation Forest and whole-corpus correlation require a separate distributed/batch execution layer.
+
 ---
 
 ## Architecture: Parse & Store Once, Detect & Query at Binary Speed
@@ -231,6 +237,9 @@ API keys (such as `OPENAI_API_KEY`) are loaded from `.env` via `python-dotenv`. 
 | `GET` | `/api/datasets` | List available authoritative datasets (Linux, OpenStack, HDFS) |
 | `POST` | `/api/ingest/sample` | Ingest and analyze a dataset from disk |
 | `POST` | `/api/ingest/upload` | Upload and analyze a custom raw log file |
+| `GET` | `/api/ingest/bulk-files` | List staged local files in `data/imports/` |
+| `POST` | `/api/ingest/stream-file` | Stream a staged file to Parquet with a 26 GiB ceiling |
+| `GET` | `/api/ingest/bulk-runs/{job_id}` | Read bulk-run storage stats and bounded incident preview |
 | `GET` | `/api/analysis/overview` | Active dataset KPIs, templates, and noise reduction stats |
 | `GET` | `/api/analysis/incidents` | Correlated incident reports with root-cause summaries |
 | `GET` | `/api/analysis/logs` | Searchable, paginated log stream |
