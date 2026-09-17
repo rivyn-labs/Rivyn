@@ -9,7 +9,7 @@
 
 > **Rivyn** is an AI log intelligence platform designed for the **MHP Hackathon ("Take the Money and Run")**. It transforms multi-gigabyte unformatted raw system logs into structured columnar binary storage (**Apache Parquet**), uncovers rare behavioral shifts using **Multi-Tier AI Anomaly Detection**, and clusters alert floods into root-cause incident tickets, measured at **88-97% alert noise reduction** on the committed LogHub datasets.
 
-For the interactive demo, custom uploads are intentionally limited to 20 MiB and 200,000 lines so an in-memory analysis remains responsive. The supplied benchmark datasets remain available through the dataset selector.
+For the interactive demo, uploads are processed in full and show live progress plus an estimated duration. Processing time and memory use scale with the selected file; the supplied benchmark data remains preserved in the repository.
 
 ### Bulk files up to 26 GiB
 
@@ -65,7 +65,11 @@ Bulk runs keep a bounded dashboard and incident preview in memory. Their streami
 
 ---
 
-## Definitive Benchmark Results: 7 LogHub Production Datasets (2.7M+ Lines)
+## Historical Benchmark Results: 7 LogHub Production Datasets (2.7M+ Lines)
+
+The table below is retained as the historical benchmark record in
+`data/benchmark_all_datasets.json`. It must not be presented as a fresh result
+until rerun on the current commit and hardware.
 
 Evaluated across **all 7 heterogeneous LogHub production datasets** in `data/samples/`:
 1. **Linux**: 100% complete OS syslog & auth logs (25,567 lines)
@@ -140,12 +144,46 @@ a clean-looking table.
   it pulls in torch, a multi-gigabyte download, and the base clone must stay
   runnable. `LogEmbeddingIndex.backend` reports which is active
   (`"semantic"` / `"tfidf"`), and nothing breaks without it.
-- **LLM reasoning is opt-in.** Without an API key the platform serves its
+- **LLM reasoning is opt-in.** The configured default is `gpt-5.6-terra` with
+  `high` reasoning. Without an API key the platform serves its
   deterministic rule-based narratives, so incident text on the board may come from
   either the LLM or the rule engine and the response does not currently say which.
 - **HDFS tests skip on a fresh clone.** Five tests depend on the 1.58 GB
   `HDFS.log`, which is not committed. They skip with an actionable message rather
   than failing; fetch the dataset into `data/samples/` to run them.
+
+### Current Dataset Validation Focus — Spark and BGL (2026-09-12)
+
+We are validating datasets incrementally and preserving every existing raw-data
+and benchmark artifact. The first reproducible current-commit slices are:
+
+| Dataset | Source | Slice | Dialect | Templates | Anomalies | Incidents |
+| :--- | :--- | --: | :--- | --: | --: | --: |
+| Spark | `data/samples/Spark.log` | 2,000 lines | `spark` | 37 | 249 | 18 |
+| BGL | `data/samples/BGL/BGL.log` | 2,000 lines | `bgl` | 2 | 98 | 1 |
+
+These figures validate parser selection and the current ingestion pipeline;
+they are not claims about the full datasets. Next: run labeled evaluation where
+ground truth is available, then controlled larger slices with recorded machine
+and commit metadata.
+
+### Verification Status (2026-09-12)
+
+- Upload flow: API-tested with a three-line log, empty-file rejection,
+  duplicate-upload idempotency, and a 2,002-line no-cap regression test.
+  Browser-smoke-tested with the local three-line file: the dashboard refreshed,
+  the configured LLM request returned successfully, and the dialog closed after
+  analysis. Errors and duplicate-upload feedback remain visible in the dialog.
+  On narrow screens the log explorer switches to labeled compact records so
+  message text does not collapse into unreadable columns.
+- LLM: the restarted local app reported `gpt-5.6-terra` with `high` reasoning
+  and completed OpenAI Chat Completions for a small upload. Credentials remain
+  only in ignored `.env`; the app calls the model for at most three changed
+  incidents per ingest, then retains deterministic evidence-linked fallback
+  coverage.
+- Tests: ingestion and parsing suites pass (19 tests). The all-in-one end-to-end
+  suite's final large benchmark exceeds this machine's one-minute terminal
+  window, so it is deliberately recorded as incomplete rather than passed.
 
 ---
 
@@ -168,7 +206,10 @@ a clean-looking table.
 - **Incident Correlator**: Groups anomalies by mined template, then merges across templates that share an entity and overlap in time, into unified incident cards. Measured at **88.21% (Linux) and 97.45% (OpenStack)** noise reduction.
 
 ### 4. Generative LLM Incident Reasoning & Copilot (OpenAI / Claude / Gemini)
-- **OpenAI Integration (Primary)**: Powered by OpenAI (`gpt-4o-mini` / `gpt-4o`) via `OPENAI_API_KEY` (leveraging hackathon OpenAI credits), with support for Anthropic Claude and Google Gemini.
+- **OpenAI Integration (Primary)**: Powered by OpenAI `gpt-5.6-terra` with
+  `high` reasoning via `OPENAI_API_KEY` (leveraging hackathon OpenAI credits),
+  with support for Anthropic Claude and Google Gemini. The model can be changed
+  with `LLM_MODEL` and its effort with `LLM_REASONING_EFFORT`.
 - **Root-Cause Synthesis**: Generates executive summaries, technical root-cause hypotheses citing exact log lines, and numbered remediation checklists using strict JSON schema validation.
 - **Grounded Copilot (RAG)**: Conversational assistant answering natural language questions grounded strictly in retrieved log evidence passages with line citations (`[Line <id> @ <timestamp>]`).
 - **Deterministic Offline Fallback**: Automatically switches to the deterministic engine if no API key is provided or if network calls timeout, ensuring 100% offline reliability for hackathon presentations.
@@ -199,10 +240,12 @@ pip install -r requirements.txt
 ```bash
 python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000
 ```
-Open **`http://localhost:8000`** in your browser.
-- Switch between **all 7 datasets** (Linux, OpenStack, ZooKeeper, Hadoop, Spark, BGL, HDFS).
+Open **`http://localhost:8000`** in your browser. The presentation landing page
+does not pre-load a dataset; upload a log, or explicitly load one of the three
+selector datasets (**HDFS, OpenStack, Spark**).
 - View real-time alert noise reduction KPIs, Drain template graphs, and incident cards.
-- Investigate root causes interactively with the AI Investigation Copilot (OpenAI `gpt-4o-mini`).
+- Investigate root causes interactively with the AI Investigation Copilot (OpenAI
+  `gpt-5.6-terra`, `high` reasoning by default).
 
 ### 3. Run the Automated Benchmarks
 ```bash

@@ -40,6 +40,16 @@ class LogEmbeddingIndex:
             return
 
         self.chunks = []
+        self._append_chunks(logs)
+
+    def append_logs(self, logs: List[NormalizedLog]):
+        """Add new evidence windows while retaining every existing chunk."""
+        if not logs:
+            return
+        self._append_chunks(logs)
+
+    def _append_chunks(self, logs: List[NormalizedLog]):
+        existing = {chunk.chunk_id for chunk in self.chunks}
         total = len(logs)
         # Adapt sliding step for large log streams (cap baseline chunks to ~2000)
         step = max(1, self.chunk_size // 2) if total < 10000 else max(self.chunk_size, total // 2000)
@@ -47,8 +57,10 @@ class LogEmbeddingIndex:
             window = logs[i:i + self.chunk_size]
             if not window:
                 continue
-            chunk = LogChunk(f"chunk_{i}", window)
-            self.chunks.append(chunk)
+            chunk = LogChunk(f"chunk_{window[0].id}_{window[-1].id}", window)
+            if chunk.chunk_id not in existing:
+                self.chunks.append(chunk)
+                existing.add(chunk.chunk_id)
 
         # For large streams, ensure all anomalous windows are indexed for Copilot RAG
         if total >= 10000:
@@ -60,7 +72,10 @@ class LogEmbeddingIndex:
                     start_i = max(0, i - 2)
                     window = logs[start_i:start_i + self.chunk_size]
                     if window:
-                        self.chunks.append(LogChunk(f"chunk_{start_i}", window))
+                        chunk = LogChunk(f"chunk_{window[0].id}_{window[-1].id}", window)
+                        if chunk.chunk_id not in existing:
+                            self.chunks.append(chunk)
+                            existing.add(chunk.chunk_id)
                         covered_indices.add(start_i)
 
         texts = [c.text for c in self.chunks]

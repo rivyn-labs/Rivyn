@@ -27,6 +27,64 @@ def test_e2e_openstack_slice():
     assert data["status"] == "success"
     assert "binary_storage" in data
 
+
+def test_e2e_upload_small_log_and_duplicate_is_idempotent():
+    content = (
+        b"2024-01-01 00:00:01 ERROR api: request req-12345678 failed\n"
+        b"2024-01-01 00:00:02 INFO api: retry scheduled\n"
+        b"2024-01-01 00:00:03 ERROR api: request req-12345678 failed\n"
+    )
+    files = {"file": ("upload-e2e.log", content, "text/plain")}
+
+    first = client.post("/api/ingest/upload", files=files)
+    assert first.status_code == 200
+    first_data = first.json()
+    assert first_data["status"] == "accepted"
+    assert first_data["submitted_lines"] == 3
+    assert first_data["truncated"] is False
+    first_job = client.get(f"/api/ingest/jobs/{first_data['job_id']}")
+    assert first_job.status_code == 200
+    assert first_job.json()["status"] == "complete"
+    assert first_job.json()["new_lines"] == 3
+    assert first_job.json()["duplicate"] is False
+
+    second = client.post("/api/ingest/upload", files=files)
+    assert second.status_code == 200
+    duplicate_job = client.get(f"/api/ingest/jobs/{second.json()['job_id']}")
+    assert duplicate_job.status_code == 200
+    assert duplicate_job.json()["new_lines"] == 0
+    assert duplicate_job.json()["duplicate"] is True
+
+
+def test_e2e_upload_rejects_empty_file():
+    res = client.post("/api/ingest/upload", files={"file": ("empty.log", b"", "text/plain")})
+    assert res.status_code == 400
+    assert "no log lines" in res.json()["detail"]
+
+
+def test_e2e_upload_has_no_line_limit():
+    content = b"\n".join(
+        f"2024-01-01 00:00:{index % 60:02d} INFO api: event {index}".encode()
+        for index in range(1, 2003)
+    )
+    response = client.post("/api/ingest/upload", files={"file": ("unlimited-e2e.log", content, "text/plain")})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "accepted"
+    assert data["lines_to_process"] == 2002
+    assert data["truncated"] is False
+    job = client.get(f"/api/ingest/jobs/{data['job_id']}")
+    assert job.status_code == 200
+    assert job.json()["status"] == "complete"
+    assert job.json()["new_lines"] == 2002
+
+
+def test_e2e_ai_status_does_not_expose_a_key():
+    res = client.get("/api/ai/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert set(data) == {"openai_configured", "active_provider", "model", "reasoning_effort", "max_incidents_per_ingestion"}
+
 def test_e2e_ingest_and_query():
     # Ingest linux sample
     res = client.post("/api/ingest/sample", json={"dataset": "linux", "max_lines": 150})

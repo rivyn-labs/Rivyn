@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import tempfile
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.compute as pc
@@ -19,6 +20,9 @@ class BinaryLogEngine:
 
     ARROW_SCHEMA = pa.schema([
         ("id", pa.uint32()),
+        ("source_id", pa.string()),
+        ("source_line", pa.uint32()),
+        ("event_id", pa.string()),
         ("timestamp", pa.string()),
         ("timestamp_epoch", pa.float64()),
         ("level", pa.dictionary(pa.int8(), pa.string())),
@@ -45,6 +49,9 @@ class BinaryLogEngine:
         return pa.Table.from_arrays(
             [
                 pa.array([l.id for l in logs], type=pa.uint32()),
+                pa.array([l.source_id for l in logs], type=pa.string()),
+                pa.array([l.source_line for l in logs], type=pa.uint32()),
+                pa.array([l.event_id or f"legacy-{l.id}" for l in logs], type=pa.string()),
                 pa.array([l.timestamp or "" for l in logs], type=pa.string()),
                 pa.array([l.timestamp_epoch or 0.0 for l in logs], type=pa.float64()),
                 pa.array([l.level for l in logs]).dictionary_encode(),
@@ -74,7 +81,13 @@ class BinaryLogEngine:
             writer.write_table(cls.logs_to_table(logs))
 
     @classmethod
-    def save_batch(cls, batch: LogBatch, output_dir: str = "data/binary") -> Dict[str, Any]:
+    def save_batch(
+        cls,
+        batch: LogBatch,
+        output_dir: str = "data/binary",
+        *,
+        append: bool = False,
+    ) -> Dict[str, Any]:
         """
         Serializes a LogBatch to compressed binary Parquet format with dictionary encoding.
         """
@@ -90,8 +103,35 @@ class BinaryLogEngine:
 
         table = cls.logs_to_table(logs)
 
-        # Write Parquet binary file with Snappy compression
-        pq.write_table(table, filepath, compression="snappy")
+        # Incremental interactive uploads are bounded by the API's small-file
+        # limit, so merging their existing Parquet rows is safe. Bulk streaming
+        # deliberately does not use this path: it writes row groups directly.
+        if append and os.path.exists(filepath):
+            existing = pq.read_table(filepath)
+            if "event_id" in existing.column_names:
+                known_events = set(existing["event_id"].to_pylist())
+                keep = [event_id not in known_events for event_id in table["event_id"].to_pylist()]
+                table = table.filter(pa.array(keep))
+            else:
+                existing = existing.append_column("source_id", pa.array([""] * len(existing), type=pa.string()))
+                existing = existing.append_column("source_line", pa.array([0] * len(existing), type=pa.uint32()))
+                existing = existing.append_column(
+                    "event_id",
+                    pa.array([f"legacy-{value}" for value in existing["id"].to_pylist()], type=pa.string()),
+                )
+                existing = existing.select(cls.ARROW_SCHEMA.names)
+            table = pa.concat_tables([existing.cast(cls.ARROW_SCHEMA), table], promote_options="none")
+
+        # Write then atomically publish, so an interrupted incremental upload
+        # cannot replace a valid previous Parquet dataset with a partial file.
+        fd, temp_path = tempfile.mkstemp(prefix=f".{filename}.", suffix=".tmp", dir=output_dir)
+        os.close(fd)
+        try:
+            pq.write_table(table, temp_path, compression="snappy")
+            os.replace(temp_path, filepath)
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
         elapsed = time.time() - t0
 
         binary_bytes = os.path.getsize(filepath)

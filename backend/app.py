@@ -12,63 +12,18 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from backend.config import settings
-from backend.api import ingest_router, analysis_router, investigate_router, metrics_router
-from backend.ingestion.loader import LogLoader
-from backend.ai.anomaly_detector import HybridAnomalyDetector
-from backend.ai.incident_correlator import IncidentCorrelator
-from backend.ai.embeddings import LogEmbeddingIndex
-from backend.ai.llm_reasoner import GroundedReasoner
-from backend.analytics.metrics import ObservabilityEvaluator
-from backend.api.state import state
+from backend.api.routes_ingest import router as ingest_router
+from backend.api.routes_analysis import router as analysis_router
+from backend.api.routes_investigate import router as investigate_router
+from backend.api.routes_metrics import router as metrics_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("ObservabilityApp")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Pre-populate complete LogHub Linux dataset (or HDFS fallback)
-    linux_sample = os.path.join(settings.samples_dir, "Linux.log")
-    sample_file = linux_sample if os.path.exists(linux_sample) else os.path.join(settings.samples_dir, "hdfs_sample.log")
-    dataset_name = "linux_full" if "Linux.log" in sample_file else "hdfs"
-    if os.path.exists(sample_file):
-        try:
-            logger.info(f"Pre-loading {dataset_name} ({sample_file}) for immediate demo availability...")
-            batch = LogLoader.load_from_file(sample_file, max_lines=26000, dataset_name=dataset_name)
-            batch.logs = HybridAnomalyDetector().detect_anomalies(batch.logs)
-            incidents = IncidentCorrelator().correlate(batch.logs)
-            logs_map = {l.id: l for l in batch.logs}
-            reasoner = GroundedReasoner()
-            # Run LLM reasoning on top 8 incidents; deterministic on remainder to conserve API credits and startup speed
-            for i, inc in enumerate(incidents):
-                if i < 8:
-                    reasoner.explain_incident(inc, logs_map)
-                else:
-                    evidence_logs = [logs_map[lid] for lid in inc.evidence_log_ids if lid in logs_map]
-                    if evidence_logs:
-                        reasoner._explain_deterministic(inc, evidence_logs)
-            batch.incidents = incidents
-            batch.metrics = ObservabilityEvaluator.calculate_metrics(
-                batch.logs,
-                incidents,
-                len(batch.templates),
-                pipeline_elapsed_sec=0.45
-            )
-            index = LogEmbeddingIndex(chunk_size=5)
-            index.build_index(batch.logs[:2000])
-
-            # Binary Columnar Parquet Serialization
-            from backend.storage.binary_engine import BinaryLogEngine
-            bin_save = BinaryLogEngine.save_batch(
-                batch, output_dir=os.path.join(settings.data_dir, "binary")
-            )
-            bin_scan = BinaryLogEngine.scan_anomalies_vectorized(bin_save["file_path"])
-            state.binary_stats = {**bin_save, **bin_scan}
-
-            state.current_batch = batch
-            state.embedding_index = index
-            logger.info(f"Demo data loaded: {len(batch.logs):,} logs, {len(incidents)} incidents.")
-        except Exception as e:
-            logger.error(f"Failed to pre-load sample: {e}")
+    # Keep the presentation landing state empty. Sample data is loaded only when
+    # the operator explicitly chooses a supported demo dataset or uploads a log.
     yield
 
 app = FastAPI(
@@ -98,8 +53,23 @@ if os.path.exists(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
     @app.get("/")
-    def serve_frontend_root():
-        return FileResponse(os.path.join(frontend_dir, "index.html"))
+    @app.get("/product")
+    @app.get("/marketing")
+    def serve_marketing_root():
+        marketing_path = os.path.join(frontend_dir, "marketing.html")
+        if os.path.exists(marketing_path):
+            return FileResponse(marketing_path, headers={"Cache-Control": "no-store"})
+        return FileResponse(os.path.join(frontend_dir, "index.html"), headers={"Cache-Control": "no-store"})
+
+    @app.get("/app")
+    @app.get("/console")
+    @app.get("/dashboard")
+    @app.get("/tool")
+    def serve_tool_ui():
+        return FileResponse(
+            os.path.join(frontend_dir, "index.html"),
+            headers={"Cache-Control": "no-store"},
+        )
 
 @app.get("/health")
 def health_check():

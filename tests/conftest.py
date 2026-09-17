@@ -3,6 +3,8 @@ import sys
 
 import pytest
 
+from backend.config import settings
+
 # Ensure backend can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -38,3 +40,9 @@ def dataset_path(filename: str) -> str:
 def dataset_available(filename: str) -> bool:
     """Non-skipping existence check, for tests that iterate over datasets."""
     return os.path.exists(os.path.join(REPO_ROOT, "data", "samples", filename))
+
+
+@pytest.fixture(autouse=True)
+def disable_paid_llm_calls_in_tests(monkeypatch):
+    """Unit and API tests must remain deterministic and never spend API credits."""
+    monkeypatch.setattr(settings, "llm_max_incidents_per_ingestion", 0)

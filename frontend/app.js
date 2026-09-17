@@ -534,6 +534,8 @@ async function pollUploadJob() {
       const bulkComplete = job.execution_mode === "streaming";
       document.getElementById("uploadResult").textContent = bulkComplete
         ? `Bulk dataset stored · ${lines} lines streamed to ${job.parquet_file} in ${formatDuration(job.elapsed_seconds)} (${speed} lines/sec)`
+        : job.duplicate
+          ? "No new log lines were added because this file was already ingested. Existing records are preserved."
         : `Ready · ${lines} lines processed in ${formatDuration(job.elapsed_seconds)} (${speed} lines/sec)`;
       finishUploadUi();
       if (!bulkComplete) await refreshDashboard();

@@ -14,6 +14,9 @@ class LogSeverity(str, Enum):
 
 class NormalizedLog(BaseModel):
     id: int = Field(..., description="Unique line sequence identifier")
+    source_id: str = Field("", description="Stable identifier for the originating log source")
+    source_line: int = Field(0, description="One-based line number within the originating source")
+    event_id: str = Field("", description="Stable, idempotency key for this source line/event")
     timestamp: Optional[str] = Field(None, description="ISO-formatted or parsed timestamp")
     timestamp_epoch: Optional[float] = Field(None, description="Epoch seconds for temporal windowing")
     level: str = Field("INFO", description="Standardized log level")

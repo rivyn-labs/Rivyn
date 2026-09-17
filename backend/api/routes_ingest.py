@@ -5,6 +5,7 @@ from typing import Callable
 from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from typing import List, Optional
+from backend.ingestion.incremental import IncrementalIngestor
 from backend.ingestion.loader import LogLoader
 from backend.ingestion.streaming import StreamingLogProcessor
 from backend.ai.anomaly_detector import HybridAnomalyDetector
@@ -135,16 +136,16 @@ def _run_upload_job(job_id: str, lines: List[str], filename: str, byte_count: in
     job["progress"] = 10
 
     try:
-        batch = LogLoader.load_from_lines(lines[:MAX_UPLOAD_LINES], dataset_name=filename)
-        job["lines_processed"] = batch.total_lines
-        job["stage"] = "Preparing analysis"
-        job["progress"] = 18
-
-        def update(stage: str, progress: int) -> None:
-            job["stage"] = stage
-            job["progress"] = progress
-
-        _process_and_store(batch, report_progress=update)
+        submitted_lines = lines[:MAX_UPLOAD_LINES]
+        previous_total = state.datasets.get(filename).batch.total_lines if filename in state.datasets else 0
+        job.update({"stage": "Analyzing and correlating incidents", "progress": 25})
+        batch = IncrementalIngestor.ingest(
+            submitted_lines,
+            filename,
+            source_id=filename,
+            output_dir=os.path.join(settings.data_dir, "binary"),
+        )
+        new_lines = batch.total_lines - previous_total
         elapsed = max(0.01, time.time() - job["started_at"])
         lines_per_second = batch.total_lines / elapsed
         state.observed_lines_per_second = lines_per_second
@@ -156,6 +157,10 @@ def _run_upload_job(job_id: str, lines: List[str], filename: str, byte_count: in
             "elapsed_seconds": round(elapsed, 2),
             "lines_per_second": round(lines_per_second, 1),
             "bytes_per_second": round(byte_count / elapsed, 1),
+            "lines_processed": len(submitted_lines),
+            "new_lines": new_lines,
+            "duplicate": bool(submitted_lines) and new_lines == 0,
+            "dataset": batch.dataset_name,
         })
     except Exception as exc:
         job.update({
@@ -209,6 +214,19 @@ def get_binary_stats():
     if not state.binary_stats:
         return {"status": "no_binary_data"}
     return {"binary_engine": state.binary_stats}
+
+
+@router.get("/ai/status")
+def get_ai_status():
+    """Expose AI readiness without exposing credentials."""
+    reasoner = GroundedReasoner()
+    return {
+        "openai_configured": bool(reasoner.openai_api_key),
+        "active_provider": "openai" if reasoner.openai_api_key else "deterministic_fallback",
+        "model": reasoner.model if reasoner.openai_api_key else None,
+        "reasoning_effort": reasoner.reasoning_effort if reasoner.openai_api_key else None,
+        "max_incidents_per_ingestion": settings.llm_max_incidents_per_ingestion,
+    }
 
 @router.get("/datasets")
 def list_available_datasets():
@@ -342,8 +360,9 @@ async def ingest_upload(file: UploadFile = File(...), background_tasks: Backgrou
     text = contents.decode("utf-8", errors="ignore")
     lines = text.splitlines()
     if not lines:
-        raise HTTPException(status_code=400, detail="The uploaded file contains no readable log lines.")
+        raise HTTPException(status_code=400, detail="The uploaded file contains no log lines.")
 
+    safe_filename = os.path.basename(file.filename or "uploaded_file")
     job_id = str(uuid.uuid4())
     lines_to_process = min(len(lines), MAX_UPLOAD_LINES)
     state.ingestion_jobs[job_id] = {
@@ -351,19 +370,21 @@ async def ingest_upload(file: UploadFile = File(...), background_tasks: Backgrou
         "status": "queued",
         "stage": "Queued for analysis",
         "progress": 0,
-        "filename": file.filename or "uploaded_file",
+        "filename": safe_filename,
         "bytes": len(contents),
         "lines_detected": len(lines),
         "lines_to_process": lines_to_process,
         "created_at": time.time(),
         "estimated_seconds": _estimate_processing_seconds(lines_to_process),
     }
-    background_tasks.add_task(_run_upload_job, job_id, lines, file.filename or "uploaded_file", len(contents))
+    background_tasks.add_task(_run_upload_job, job_id, lines, safe_filename, len(contents))
     return {
         "status": "accepted",
         "job_id": job_id,
         "estimated_seconds": state.ingestion_jobs[job_id]["estimated_seconds"],
         "lines_to_process": lines_to_process,
+        "submitted_lines": len(lines),
+        "truncated": False,
     }
 
 

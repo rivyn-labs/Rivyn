@@ -87,3 +87,6 @@ server*.log
 
 # Local editor/agent config
 .claude/
+
+# Local tool runtimes used for verification
+.tools/

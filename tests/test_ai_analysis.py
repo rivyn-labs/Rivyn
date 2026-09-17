@@ -109,5 +109,9 @@ def test_grounded_reasoner_openai_mock(monkeypatch):
     assert res.title == "OpenAI Diagnosed Incident"
     assert res.confidence == 0.97
     assert "Hypervisor crash" in res.probable_root_cause
+    request = fake_client.chat.completions.create.call_args.kwargs
+    assert request["model"] == "gpt-5.6-terra"
+    assert request["reasoning_effort"] == "high"
+    assert "temperature" not in request
 
 
