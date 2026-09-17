@@ -1,6 +1,6 @@
 # Rivyn brand assets
 
-`rivyn-logo-dark.svg` is the canonical Rivyn logo: use it for dark, square brand placements, including the LinkedIn company profile.
+`rivyn-logo-dark.png` is the canonical Rivyn logo for dark, square brand placements, including the LinkedIn company profile. `rivyn-logo-dark.svg` is its vector counterpart for scalable use.
 
 Supporting approved variants:
 
